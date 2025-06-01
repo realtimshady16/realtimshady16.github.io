@@ -23,13 +23,29 @@
             border: 1px solid #ccc;
         }
     </style>
-</head>
+		<script src="skulpt-stdlib.js"type="text/javascript"></script>
+<script src="skulpt.js" type="text/javascript"></script>
+	</head>
 <body>
     <h1>User Input and Output</h1>
     <textarea id="input-box" placeholder="Enter your input here..."></textarea>
-    <button id="submit-btn">Submit</button>
+    <button id="submit-btn" onclick="runit()">Submit</button>
     <div id="output-box"></div>
+	<script type="text/javascript">
+		document.getElementById("submit-btn").addEventListener("click", function() {
+			var code = document.getElementById("input-box").value;
+			var output = document.getElementById("output-box");
 
-    <script src="script.js"></script>
+			Skulpt.configure({	output: function(text) {
+				output.innerText += text;
+			},
+				read: function(name) {
+					return window[name];
+				}
+			});
+
+			Skulpt.run(code);
+		});
+	</script>
 </body>
 </html>
