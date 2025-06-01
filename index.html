@@ -21,31 +21,54 @@
             padding: 10px;
             font-size: 16px;
             border: 1px solid #ccc;
+            overflow-y: auto;
         }
     </style>
-		<script src="skulpt-stdlib.js"type="text/javascript"></script>
-<script src="skulpt.js" type="text/javascript"></script>
-	</head>
+</head>
 <body>
     <h1>User Input and Output</h1>
-    <textarea id="input-box" placeholder="Enter your input here..."></textarea>
-    <button id="submit-btn">Submit</button>
+    <textarea id="input-box" placeholder="Enter your Python code here..."></textarea>
+    <button id="submit-btn" disabled>Submit</button>
     <div id="output-box"></div>
-	<script type="text/javascript">
-		document.getElementById("submit-btn").addEventListener("click", function() {
-			var code = document.getElementById("input-box").value;
-			var output = document.getElementById("output-box");
 
-			Skulpt.configure({	output: function(text) {
-				output.innerText += text;
-			},
-				read: function(name) {
-					return window[name];
-				}
-			});
+    <script src="skulpt-stdlib.js" type="text/javascript"></script>
+    <script src="skulpt.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        function runCode() {
+            document.getElementById("submit-btn").addEventListener("click", function() {
+                var code = document.getElementById("input-box").value;
+                var output = document.getElementById("output-box");
+                output.innerText = ""; // Clear previous output
 
-			Skulpt.run(code);
-		});
-	</script>
+                Skulpt.configure({
+                    output: function(text) {
+                        output.innerText += text;
+                    },
+                    read: function(name) {
+                        return window[name];
+                    }
+                });
+
+                try {
+                    Skulpt.run(code);
+                } catch (e) {
+                    output.innerText = "Error: " + e.message;
+                }
+            });
+        }
+
+        function onSkulptReady() {
+            document.getElementById("submit-btn").disabled = false;
+            runCode();
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            if (typeof Skulpt !== "undefined") {
+                Skulpt.onReady(onSkulptReady);
+            } else {
+                console.error("Skulpt library not loaded.");
+            }
+        });
+    </script>
 </body>
 </html>
