@@ -32,7 +32,7 @@
 <body>
     <h1>User Input and Output</h1>
     <textarea id="input-box" placeholder="Enter your Python code here..."></textarea>
-    <button id="submit-btn" disabled>Submit</button>
+    <button id="submit-btn">Submit</button>
     <div id="output-box"></div>
 
         <script type="text/javascript">
@@ -59,17 +59,17 @@
             });
         }
 
-        function onSkulptReady() {
-            document.getElementById("submit-btn").disabled = false;
-            runCode();
-        }
+        //function onSkulptReady() {
+            //document.getElementById("submit-btn").disabled = false;
+          //  runCode();
+        //}
 
         //document.addEventListener("DOMContentLoaded", function() {
-            if (typeof Skulpt !== "undefined") {
-                Skulpt.onReady(onSkulptReady);
-            } else {
-                console.error("Skulpt library not loaded.");
-            }
+            //if (typeof Skulpt !== "undefined") {
+            //    Skulpt.onReady(onSkulptReady);
+            //} else {
+            //    console.error("Skulpt library not loaded.");
+            //}
         //});
     </script>
    </body>
