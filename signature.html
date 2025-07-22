@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Signer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align to top to allow scrolling */
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            width: 100%;
+        }
+        .pdf-page-wrapper {
+            position: relative;
+            margin-bottom: 20px; /* Space between pages */
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            max-width: 800px; /* Max width for PDF display */
+        }
+        .pdf-page-wrapper canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+        .pdf-page-wrapper .signature-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+            border: 2px dashed #9ca3af; /* Dashed border for signature area */
+            box-sizing: border-box;
+        }
+        .button-primary {
+            @apply bg-blue-600 text-white font-semibold py-2 px-5 rounded-lg shadow-md hover:bg-blue-700 transition duration-300 ease-in-out cursor-pointer;
+        }
+        .button-secondary {
+            @apply bg-gray-200 text-gray-800 font-semibold py-2 px-5 rounded-lg shadow-md hover:bg-gray-300 transition duration-300 ease-in-out cursor-pointer;
+        }
+        input[type="file"] {
+            @apply block w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 cursor-pointer focus:outline-none;
+            padding: 10px;
+        }
+        .message-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            text-align: center;
+        }
+        .message-box button {
+            @apply bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-3xl font-bold text-gray-800 mb-4">PDF Electronic Signer</h1>
+
+        <div class="controls">
+            <label class="block w-full sm:w-auto">
+                <span class="sr-only">Choose PDF file</span>
+                <input type="file" id="pdfInput" accept=".pdf">
+            </label>
+            <button id="clearSignatureBtn" class="button-secondary">Clear All Signatures</button>
+            <button id="savePdfBtn" class="button-primary">Save Signed PDF</button>
+        </div>
+
+        <div id="pdfViewer" class="w-full flex flex-col items-center">
+            <!-- PDF pages and signature canvases will be dynamically added here -->
+            <p id="initialMessage" class="text-gray-600 text-lg mt-10">Upload a PDF to start signing.</p>
+        </div>
+
+        <div id="messageBox" class="message-box">
+            <p id="messageText" class="text-lg text-gray-700"></p>
+            <button id="messageBoxCloseBtn">OK</button>
+        </div>
+    </div>
+
+    <script>
+        // Set up PDF.js worker source
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
+
+        // Get references to HTML elements
+        const pdfInput = document.getElementById('pdfInput');
+        const clearSignatureBtn = document.getElementById('clearSignatureBtn');
+        const savePdfBtn = document.getElementById('savePdfBtn');
+        const messageBox = document.getElementById('messageBox');
+        const messageText = document.getElementById('messageText');
+        const messageBoxCloseBtn = document.getElementById('messageBoxCloseBtn');
+        const pdfViewer = document.getElementById('pdfViewer');
+        const initialMessage = document.getElementById('initialMessage');
+
+        let currentPdfDoc = null; // Stores the loaded PDF document
+        let originalPdfBytes = null; // To store the original PDF bytes for saving
+        let signatureCanvases = []; // Array to store all dynamically created signature canvases
+        let signatureContexts = []; // Array to store all drawing contexts for signature canvases
+
+        // Function to show a custom message box
+        function showMessageBox(message) {
+            messageText.textContent = message;
+            messageBox.style.display = 'flex';
+        }
+
+        // Event listener for message box close button
+        messageBoxCloseBtn.addEventListener('click', () => {
+            messageBox.style.display = 'none';
+        });
+
+        /**
+         * Sets up drawing functionality for a given signature canvas.
+         * @param {HTMLCanvasElement} canvas - The signature canvas element.
+         * @param {CanvasRenderingContext2D} ctx - The 2D rendering context of the canvas.
+         */
+        function setupSignatureDrawing(canvas, ctx) {
+            let isDrawing = false;
+
+            // Drawing properties
+            ctx.lineWidth = 30; // Ink size
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.strokeStyle = '#000000'; // Black color for signature
+
+            // Helper function to get scaled coordinates
+            function getScaledCoordinates(clientX, clientY) {
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;    // Ratio of intrinsic width to displayed width
+                const scaleY = canvas.height / rect.height;  // Ratio of intrinsic height to displayed height
+
+                const x = (clientX - rect.left) * scaleX;
+                const y = (clientY - rect.top) * scaleY;
+                return { x, y };
+            }
+
+            canvas.addEventListener('mousedown', (e) => {
+                if (!currentPdfDoc) {
+                    showMessageBox('Please load a PDF first to draw a signature.');
+                    return;
+                }
+                isDrawing = true;
+                const { x, y } = getScaledCoordinates(e.clientX, e.clientY);
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+            });
+
+            canvas.addEventListener('mousemove', (e) => {
+                if (!isDrawing) return;
+                const { x, y } = getScaledCoordinates(e.clientX, e.clientY);
+                ctx.lineTo(x, y);
+                ctx.stroke();
+            });
+
+            canvas.addEventListener('mouseup', () => {
+                isDrawing = false;
+                ctx.closePath();
+            });
+
+            canvas.addEventListener('mouseout', () => {
+                // Stop drawing if mouse leaves the canvas
+                if (isDrawing) {
+                    isDrawing = false;
+                    ctx.closePath();
+                }
+            });
+
+            // Touch event listeners for mobile devices
+            canvas.addEventListener('touchstart', (e) => {
+                if (!currentPdfDoc) {
+                    showMessageBox('Please load a PDF first to draw a signature.');
+                    return;
+                }
+                isDrawing = true;
+                const touch = e.touches[0];
+                const { x, y } = getScaledCoordinates(touch.clientX, touch.clientY);
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                e.preventDefault(); // Prevent scrolling while drawing
+            }, { passive: false });
+
+            canvas.addEventListener('touchmove', (e) => {
+                if (!isDrawing) return;
+                const touch = e.touches[0];
+                const { x, y } = getScaledCoordinates(touch.clientX, touch.clientY);
+                ctx.lineTo(x, y);
+                ctx.stroke();
+                e.preventDefault(); // Prevent scrolling while drawing
+            }, { passive: false });
+
+            canvas.addEventListener('touchend', () => {
+                isDrawing = false;
+                ctx.closePath();
+            });
+
+            canvas.addEventListener('touchcancel', () => {
+                if (isDrawing) {
+                    isDrawing = false;
+                    ctx.closePath();
+                }
+            });
+        }
+
+        /**
+         * Renders a specific page of the PDF onto a given PDF canvas.
+         * @param {object} pdfDoc - The PDF document object.
+         * @param {number} pageNum - The page number to render (1-indexed).
+         * @param {HTMLCanvasElement} pdfCanvas - The canvas element to render the PDF page on.
+         * @param {HTMLCanvasElement} signatureCanvas - The corresponding signature canvas.
+         */
+        async function renderPdfPage(pdfDoc, pageNum, pdfCanvas, signatureCanvas) {
+            try {
+                const page = await pdfDoc.getPage(pageNum);
+                const viewport = page.getViewport({ scale: 1 });
+
+                // Calculate scale based on the desired display width (e.g., pdfViewer's width)
+                // We use a fixed max-width for the page wrapper in CSS, so we can use that for scaling.
+                const containerWidth = pdfViewer.clientWidth > 0 ? pdfViewer.clientWidth : 800; // Fallback to 800px
+                const scale = containerWidth / viewport.width;
+                const scaledViewport = page.getViewport({ scale: scale });
+
+                pdfCanvas.height = scaledViewport.height;
+                pdfCanvas.width = scaledViewport.width;
+                signatureCanvas.height = scaledViewport.height;
+                signatureCanvas.width = scaledViewport.width;
+
+                const pdfCtx = pdfCanvas.getContext('2d');
+                const renderContext = {
+                    canvasContext: pdfCtx,
+                    viewport: scaledViewport,
+                };
+                // It's crucial to await the render promise to ensure completion before potentially re-rendering
+                await page.render(renderContext).promise;
+                console.log(`Page ${pageNum} rendered.`);
+
+                // Clear the signature canvas for this page initially
+                // This is done here to ensure it's cleared when the PDF page is re-rendered (e.g., on resize)
+                signatureCanvases[pageNum - 1].getContext('2d').clearRect(0, 0, signatureCanvases[pageNum - 1].width, signatureCanvases[pageNum - 1].height);
+
+            } catch (error) {
+                console.error(`Error rendering PDF page ${pageNum}:`, error);
+                showMessageBox(`Error rendering page ${pageNum}. Please try another PDF.`);
+            }
+        }
+
+        /**
+         * Handles the PDF file selection and loads the PDF, rendering all pages.
+         */
+        pdfInput.addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (!file) {
+                return;
+            }
+
+            if (file.type !== 'application/pdf') {
+                showMessageBox('Please select a valid PDF file.');
+                return;
+            }
+
+            initialMessage.style.display = 'none'; // Hide initial message
+            pdfViewer.innerHTML = ''; // Clear previous pages
+            signatureCanvases = []; // Reset arrays
+            signatureContexts = [];
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const arrayBuffer = e.target.result;
+                originalPdfBytes = new Uint8Array(arrayBuffer); // Store original bytes
+
+                try {
+                    const pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                    currentPdfDoc = pdfDoc;
+
+                    for (let i = 1; i <= pdfDoc.numPages; i++) {
+                        // Create a wrapper div for each page
+                        const pageWrapper = document.createElement('div');
+                        pageWrapper.className = 'pdf-page-wrapper';
+                        pageWrapper.id = `pageWrapper_${i}`;
+
+                        // Create PDF canvas for the current page
+                        const pdfCanvas = document.createElement('canvas');
+                        pdfCanvas.id = `pdfCanvas_${i}`;
+                        pdfCanvas.className = 'rounded-lg';
+
+                        // Create Signature canvas for the current page
+                        const signatureCanvas = document.createElement('canvas');
+                        signatureCanvas.id = `signatureCanvas_${i}`;
+                        signatureCanvas.className = 'signature-canvas rounded-lg';
+
+                        pageWrapper.appendChild(pdfCanvas);
+                        pageWrapper.appendChild(signatureCanvas);
+                        pdfViewer.appendChild(pageWrapper);
+
+                        // Store references
+                        signatureCanvases.push(signatureCanvas);
+                        const sigCtx = signatureCanvas.getContext('2d');
+                        signatureContexts.push(sigCtx);
+
+                        // Setup drawing for this specific signature canvas
+                        setupSignatureDrawing(signatureCanvas, sigCtx);
+
+                        // Render the PDF page
+                        await renderPdfPage(currentPdfDoc, i, pdfCanvas, signatureCanvas);
+                    }
+                    showMessageBox('PDF loaded successfully! Scroll to sign on any page.');
+                } catch (error) {
+                    console.error('Error loading PDF:', error);
+                    showMessageBox('Error loading PDF. Make sure it is a valid PDF file.');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        /**
+         * Clears all signature canvases.
+         */
+        function clearAllSignatures() {
+            signatureContexts.forEach(ctx => {
+                ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            });
+            showMessageBox('All signatures cleared.');
+        }
+
+        clearSignatureBtn.addEventListener('click', clearAllSignatures);
+
+        /**
+         * Saves the PDF with all drawn signatures.
+         */
+        savePdfBtn.addEventListener('click', async () => {
+            if (!currentPdfDoc || !originalPdfBytes) {
+                showMessageBox('Please load a PDF first.');
+                return;
+            }
+
+            let hasAnySignature = false;
+            signatureCanvases.forEach(canvas => {
+                const ctx = canvas.getContext('2d');
+                const signatureData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+                if (signatureData.some(channel => channel !== 0)) {
+                    hasAnySignature = true;
+                }
+            });
+
+            if (!hasAnySignature) {
+                showMessageBox('Please draw at least one signature before saving.');
+                return;
+            }
+
+            try {
+                // Load the original PDF using pdf-lib
+                const pdfDoc = await PDFLib.PDFDocument.load(originalPdfBytes);
+                const pages = pdfDoc.getPages();
+
+                for (let i = 0; i < signatureCanvases.length; i++) {
+                    const signatureCanvas = signatureCanvases[i];
+                    const signatureCtx = signatureContexts[i];
+                    const pdfPage = pages[i]; // Corresponding PDF page (0-indexed)
+
+                    // Check if there's anything drawn on this specific signature canvas
+                    const signatureData = signatureCtx.getImageData(0, 0, signatureCanvas.width, signatureCanvas.height).data;
+                    const hasSignature = signatureData.some(channel => channel !== 0);
+
+                    if (hasSignature) {
+                        // Embed the signature image from this canvas
+                        const signatureImageBytes = signatureCanvas.toDataURL('image/png');
+                        const signatureImage = await pdfDoc.embedPng(signatureImageBytes);
+
+                        const { width, height } = pdfPage.getSize();
+                        const sigWidth = signatureCanvas.width;
+                        const sigHeight = signatureCanvas.height;
+
+                        // Calculate scale to fit signature canvas content onto the PDF page
+                        const signatureScaleFactor = Math.min(width / sigWidth, height / sigHeight);
+                        const drawWidth = sigWidth * signatureScaleFactor;
+                        const drawHeight = sigHeight * signatureScaleFactor;
+
+                        // Draw the signature image on the PDF page
+                        pdfPage.drawImage(signatureImage, {
+                            x: 0, // Position at top-left of the page
+                            y: height - drawHeight,
+                            width: drawWidth,
+                            height: drawHeight,
+                            opacity: 1,
+                        });
+                    }
+                }
+
+                // Save the modified PDF
+                const pdfBytes = await pdfDoc.save();
+
+                // Create a Blob and trigger download
+                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'signed_document.pdf';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                showMessageBox('PDF signed and downloaded successfully!');
+
+            } catch (error) {
+                console.error('Error saving signed PDF:', error);
+                showMessageBox('Error saving signed PDF. Please try again.');
+            }
+        });
+
+        // Debounce utility function
+        function debounce(func, delay) {
+            let timeout;
+            return function(...args) {
+                const context = this;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), delay);
+            };
+        }
+
+        // Handle window resize to re-render PDF and adjust canvas sizes
+        const debouncedResizeHandler = debounce(async () => {
+            if (currentPdfDoc) {
+                // Re-render all pages to adjust to new window size
+                for (let i = 0; i < currentPdfDoc.numPages; i++) {
+                    const pdfCanvas = document.getElementById(`pdfCanvas_${i + 1}`);
+                    const signatureCanvas = document.getElementById(`signatureCanvas_${i + 1}`);
+                    if (pdfCanvas && signatureCanvas) {
+                        await renderPdfPage(currentPdfDoc, i + 1, pdfCanvas, signatureCanvas);
+                    }
+                }
+            }
+        }, 300); // Debounce by 300 milliseconds
+
+        window.addEventListener('resize', debouncedResizeHandler);
+
+        // Initial message display
+        if (pdfViewer.children.length === 0) {
+            initialMessage.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
+

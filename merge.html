@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Merger</title>
+    <!-- Tailwind CSS CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for the Inter font */
+        body {
+            font-family: "Inter", sans-serif;
+        }
+        /* Basic styling for the loading spinner */
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #4f46e5; /* Tailwind indigo-600 */
+            animation: spin 1s ease infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+    <!-- pdf-lib CDN for PDF manipulation -->
+    <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-lg border border-gray-200">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">PDF Merger Tool</h1>
+        <p class="text-center text-gray-600 mb-8">Select multiple PDF files to merge them into a single document. Reorder them using the Up/Down buttons.</p>
+
+        <!-- File input for selecting PDFs -->
+        <div class="mb-6">
+            <label for="pdfFiles" class="block text-gray-700 text-sm font-bold mb-2">
+                Select PDF Files (hold Ctrl/Cmd to select multiple):
+            </label>
+            <input
+                type="file"
+                id="pdfFiles"
+                accept=".pdf"
+                multiple
+                class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+            >
+            <p id="fileCount" class="mt-2 text-sm text-gray-500"></p>
+        </div>
+
+        <!-- Container for the list of selected files -->
+        <div id="fileListContainer" class="mb-6 space-y-2">
+            <!-- File items will be dynamically added here by JavaScript -->
+        </div>
+
+        <!-- Merge button -->
+        <button
+            id="mergePdfButton"
+            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-indigo-300 shadow-md flex items-center justify-center"
+        >
+            <span id="buttonText">Merge PDFs</span>
+            <div id="loadingSpinner" class="spinner ml-3 hidden"></div>
+        </button>
+
+        <!-- Message display area -->
+        <div id="messageBox" class="mt-6 p-4 rounded-lg text-center hidden"></div>
+
+        <!-- Download link for the merged PDF -->
+        <div id="downloadArea" class="mt-6 hidden">
+            <a
+                id="downloadLink"
+                href="#"
+                download="merged.pdf"
+                class="w-full block text-center bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-300 shadow-md"
+            >
+                Download Merged PDF
+            </a>
+        </div>
+    </div>
+
+    <script>
+        const { PDFDocument } = PDFLib; // Destructure PDFDocument from pdf-lib
+
+        const pdfFilesInput = document.getElementById('pdfFiles');
+        const mergePdfButton = document.getElementById('mergePdfButton');
+        const fileCountSpan = document.getElementById('fileCount');
+        const fileListContainer = document.getElementById('fileListContainer'); // New element for file list
+        const messageBox = document.getElementById('messageBox');
+        const downloadArea = document.getElementById('downloadArea');
+        const downloadLink = document.getElementById('downloadLink');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const buttonText = document.getElementById('buttonText');
+
+        let selectedFiles = []; // Array to store File objects in their current order
+
+        // Function to render the list of selected files in the UI
+        function renderFileList() {
+            fileListContainer.innerHTML = ''; // Clear previous list
+            if (selectedFiles.length === 0) {
+                fileCountSpan.textContent = '';
+                return;
+            }
+            fileCountSpan.textContent = `${selectedFiles.length} file(s) selected.`;
+
+            selectedFiles.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200 mb-2';
+                fileItem.innerHTML = `
+                    <span class="text-gray-800 truncate mr-4 mb-2 sm:mb-0">${file.name}</span>
+                    <div class="flex flex-wrap gap-2">
+                        <button data-index="${index}" data-action="up" class="move-button bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded-md text-sm transition duration-150 ease-in-out">Up</button>
+                        <button data-index="${index}" data-action="down" class="move-button bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded-md text-sm transition duration-150 ease-in-out">Down</button>
+                        <button data-index="${index}" data-action="remove" class="remove-button bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1 rounded-md text-sm transition duration-150 ease-in-out">Remove</button>
+                    </div>
+                `;
+                fileListContainer.appendChild(fileItem);
+            });
+        }
+
+        // Function to move a file up or down in the selectedFiles array
+        function moveFile(index, direction) {
+            if (selectedFiles.length <= 1) return; // No need to move if 0 or 1 file
+
+            const newIndex = index + direction;
+
+            // Ensure the new index is within bounds
+            if (newIndex >= 0 && newIndex < selectedFiles.length) {
+                // Swap elements using array destructuring
+                const [removed] = selectedFiles.splice(index, 1); // Remove item from old position
+                selectedFiles.splice(newIndex, 0, removed); // Insert item at new position
+                renderFileList(); // Re-render the UI to reflect the new order
+            }
+        }
+
+        // Function to remove a file from the selectedFiles array
+        function removeFile(index) {
+            selectedFiles.splice(index, 1); // Remove the file at the given index
+            renderFileList(); // Re-render the UI
+            showMessage('', ''); // Clear any previous messages
+            downloadArea.classList.add('hidden'); // Hide download link if files change
+        }
+
+        // Event listener for the file input change
+        pdfFilesInput.addEventListener('change', (event) => {
+            selectedFiles = Array.from(event.target.files); // Get selected files
+            renderFileList(); // Render the list in the UI
+            showMessage('', ''); // Clear any previous messages
+            downloadArea.classList.add('hidden'); // Hide download link if new files are selected
+        });
+
+        // Event delegation for the file list container to handle clicks on Up/Down/Remove buttons
+        fileListContainer.addEventListener('click', (event) => {
+            const target = event.target;
+            // Check if the clicked element is a move button
+            if (target.classList.contains('move-button')) {
+                const index = parseInt(target.dataset.index); // Get the index from data-index attribute
+                const action = target.dataset.action; // Get the action (up or down)
+                if (action === 'up') {
+                    moveFile(index, -1); // Move up (decrease index)
+                } else if (action === 'down') {
+                    moveFile(index, 1); // Move down (increase index)
+                }
+            }
+            // Check if the clicked element is a remove button
+            else if (target.classList.contains('remove-button')) {
+                const index = parseInt(target.dataset.index); // Get the index
+                removeFile(index); // Remove the file
+            }
+        });
+
+        // Function to display messages to the user
+        function showMessage(text, type) {
+            messageBox.textContent = text;
+            // Remove all previous type classes
+            messageBox.classList.remove('hidden', 'bg-red-100', 'text-red-700', 'bg-green-100', 'text-green-700', 'bg-blue-100', 'text-blue-700');
+            if (type === 'error') {
+                messageBox.classList.add('bg-red-100', 'text-red-700');
+            } else if (type === 'success') {
+                messageBox.classList.add('bg-green-100', 'text-green-700');
+            } else if (type === 'info') {
+                messageBox.classList.add('bg-blue-100', 'text-blue-700');
+            } else {
+                messageBox.classList.add('hidden'); // Hide if no text or unknown type
+            }
+        }
+
+        // Function to toggle loading state and button appearance
+        function setLoading(isLoading) {
+            if (isLoading) {
+                mergePdfButton.disabled = true; // Disable button during merging
+                buttonText.textContent = 'Merging...'; // Change button text
+                loadingSpinner.classList.remove('hidden'); // Show spinner
+                showMessage('Merging PDFs, please wait...', 'info'); // Show info message
+            } else {
+                mergePdfButton.disabled = false; // Enable button
+                buttonText.textContent = 'Merge PDFs'; // Restore button text
+                loadingSpinner.classList.add('hidden'); // Hide spinner
+            }
+        }
+
+        // Main function to merge PDFs when the merge button is clicked
+        mergePdfButton.addEventListener('click', async () => {
+            if (selectedFiles.length === 0) {
+                showMessage('Please select at least one PDF file.', 'error');
+                return;
+            }
+
+            setLoading(true); // Set loading state
+            downloadArea.classList.add('hidden'); // Hide previous download link
+
+            try {
+                // Create a new PDFDocument to hold the merged content
+                const mergedPdf = await PDFDocument.create();
+
+                // Loop through each selected file in the current order
+                for (const file of selectedFiles) {
+                    const arrayBuffer = await file.arrayBuffer(); // Read file as ArrayBuffer
+                    const pdf = await PDFDocument.load(arrayBuffer); // Load PDF into pdf-lib
+                    // Copy all pages from the current PDF to the merged PDF
+                    const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+                    copiedPages.forEach((page) => mergedPdf.addPage(page)); // Add copied pages
+                }
+
+                // Save the merged PDF as a Uint8Array
+                const mergedPdfBytes = await mergedPdf.save();
+
+                // Create a Blob from the Uint8Array for download
+                const blob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
+
+                // Create a URL for the Blob and set it as the download link href
+                const url = URL.createObjectURL(blob);
+                downloadLink.href = url;
+                downloadLink.download = 'merged_document.pdf'; // Suggest a filename for download
+
+                downloadArea.classList.remove('hidden'); // Show the download link
+                showMessage('PDFs merged successfully! You can download your merged document.', 'success');
+
+            } catch (error) {
+                console.error('Error merging PDFs:', error);
+                showMessage(`Error merging PDFs: ${error.message}`, 'error'); // Display error message
+                downloadArea.classList.add('hidden'); // Hide download link on error
+            } finally {
+                setLoading(false); // Reset loading state
+            }
+        });
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navigation Page</title>
+    <!-- Tailwind CSS CDN for easy styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for the Inter font */
+        body {
+            font-family: "Inter", sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md border border-gray-200">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">Choose Your Destination</h1>
+
+        <!-- Container for the buttons, using flexbox for vertical stacking and spacing -->
+        <div class="space-y-6">
+            <!-- Button 1 -->
+            <button
+                id="button1"
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300 shadow-md"
+            >
+                E-Signature
+            </button>
+
+            <!-- Button 2 -->
+            <button
+                id="button2"
+                class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-300 shadow-md"
+            >
+                Merge
+            </button>
+
+            <!-- Button 3 -->
+            <button
+                id="button3"
+                class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-purple-300 shadow-md"
+            >
+                Text
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Get references to the buttons
+        const button1 = document.getElementById('button1');
+        const button2 = document.getElementById('button2');
+        const button3 = document.getElementById('button3');
+
+        // Add event listeners to each button
+        button1.addEventListener('click', () => {
+            // Simulate navigating to 'page1.html'
+            // In a real scenario, you would have a 'page1.html' file in the same directory
+            window.location.href = 'signature.html';
+        });
+
+        button2.addEventListener('click', () => {
+            // Simulate navigating to 'page2.html'
+            // In a real scenario, you would have a 'page2.html' file in the same directory
+            window.location.href = 'merge.html';
+        });
+
+        button3.addEventListener('click', () => {
+            // Simulate navigating to 'page3.html'
+            // In a real scenario, you would have a 'page3.html' file in the same directory
+            window.location.href = 'page3.html';
+        });
+    </script>
+</body>
+</html>
+
