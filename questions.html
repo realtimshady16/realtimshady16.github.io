@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Me Q&A Widget</title>
+    <style>
+        /* IMPORTANT: For an iframe, remove 'min-height: 100vh' from body and container
+           unless you want the iframe itself to always take full viewport height.
+           Adjust height of the iframe in the embedding HTML instead. */
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* No min-height: 100vh here, let the content define height or parent iframe */
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px; /* Add some padding around the widget content */
+            box-sizing: border-box; /* Include padding in element's total width and height */
+        }
+
+        .qna-widget-container {
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            width: 90%;
+            /* Max width set to 6900px as requested */
+            max-width: 6900px;
+            text-align: center;
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 25px;
+        }
+
+        .question-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .question-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 12px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .question-button:hover {
+            background-color: #0056b3;
+        }
+
+        .answer-display {
+            min-height: 100px; /* Give some space for the answer */
+            background-color: #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: left;
+            color: #333;
+            font-size: 18px;
+            line-height: 1.6;
+            overflow: hidden; /* To contain the typing cursor */
+            position: relative;
+        }
+
+        .typing-cursor {
+            display: inline-block;
+            width: 2px;
+            height: 1.2em; /* Adjust to font size */
+            background-color: #333;
+            animation: blink 0.7s infinite;
+            vertical-align: middle;
+            margin-left: 2px;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="qna-widget-container">
+        <h2>Ask Me Anything!</h2>
+        <div class="question-buttons">
+            </div>
+        <div class="answer-display">
+            <span id="answer-text"></span>
+            <span class="typing-cursor"></span>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const questionButtonsContainer = document.querySelector('.question-buttons');
+            const answerTextSpan = document.getElementById('answer-text');
+            let currentTypingTimeout;
+
+            // Inlined questions and answers (replace with your actual data)
+            const qnaData = {
+                "questions": [
+                    {
+                        "question": "What is your professional background?",
+                        "answer": "I am a seasoned software engineer with 10+ years of experience in developing scalable web applications, specializing in full-stack development with a focus on modern JavaScript frameworks like React and Node.js. My career has involved working on diverse projects, from e-commerce platforms to data visualization tools."
+                    },
+                    {
+                        "question": "What are your key skills?",
+                        "answer": "My core skills include JavaScript (ES6+), React, Node.js, Express, MongoDB, PostgreSQL, AWS, Docker, Git, and Agile methodologies. I'm also proficient in technical problem-solving, system design, and collaborative teamwork."
+                    },
+                    {
+                        "question": "What kind of projects do you enjoy working on?",
+                        "answer": "I'm passionate about projects that involve challenging technical problems, opportunities to learn new technologies, and a positive impact on users. I particularly enjoy working on projects that require innovative solutions and cross-functional collaboration."
+                    },
+                    {
+                        "question": "What are your career aspirations?",
+                        "answer": "My long-term career goal is to transition into a lead architect role, focusing on designing robust and efficient software systems. I'm also keen on mentoring junior developers and contributing to open-source projects."
+                    },
+                    {
+                        "question": "How do you approach problem-solving?",
+                        "answer": "I typically break down complex problems into smaller, manageable parts. I start by thoroughly understanding the requirements, then explore different solutions, consider their trade-offs, and prioritize an iterative approach. I believe in continuous testing and refinement."
+                    },
+                    {
+                        "question": "Can you share a significant achievement?",
+                        "answer": "One of my proudest achievements was leading the successful migration of a legacy system to a modern microservices architecture, which resulted in a 30% improvement in performance and a significant reduction in operational costs. This project involved extensive planning, teamwork, and problem-solving."
+                    }
+                ]
+            };
+
+            // Create buttons for each question
+            qnaData.questions.forEach(qna => {
+                const button = document.createElement('button');
+                button.classList.add('question-button');
+                button.textContent = qna.question;
+                button.addEventListener('click', () => displayAnswer(qna.answer));
+                questionButtonsContainer.appendChild(button);
+            });
+
+            function displayAnswer(answer) {
+                // Clear any ongoing typing animation
+                if (currentTypingTimeout) {
+                    clearTimeout(currentTypingTimeout);
+                }
+                answerTextSpan.textContent = ''; // Clear previous answer
+                typeText(answer, 0);
+            }
+
+            function typeText(text, index) {
+                if (index < text.length) {
+                    answerTextSpan.textContent += text.charAt(index);
+                    currentTypingTimeout = setTimeout(() => typeText(text, index + 1), 50); // Adjust typing speed here (milliseconds per character)
+                }
+            }
+        });
+    </script>
+</body>
+</html>
