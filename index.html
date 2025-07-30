@@ -3,57 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Navigation Page</title>
-    <!-- Tailwind CSS CDN for easy styling -->
+    <title>Choose Your Destination</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
     <style>
-        /* Custom styles for the Inter font */
+        /* Custom styles for your brand colors and fonts */
         :root {
-  /* Core Colors for main content and background */
-  --color-dark: #333333; /* Deep Charcoal Grey - For all main text, headings */
-  --color-light: #FDFDFD; /* Very Light Off-White / Cream - For main page backgrounds */
+            /* Core Colors for main content and background */
+            --color-dark: #333333; /* Deep Charcoal Grey - For all main text, headings */
+            --color-light: #FDFDFD; /* Very Light Off-White / Cream - For main page backgrounds */
 
-  /* Accent Colors for visual flair and specific sections */
-  --color-accent: #A2D9D9; /* Muted Teal (or Soft Sage #C1DDC9 if you prefer) - For buttons, highlights, decorative blocks */
-  --color-colour2: #F4C7C7; /* Warm Dusty Rose - For secondary sections, card backgrounds, subtle elements */
+            /* Accent Colors for visual flair and specific sections */
+            --color-accent: #A2D9D9; /* Muted Teal - For buttons, highlights, decorative blocks */
+            --color-colour2: #F4C7C7; /* Warm Dusty Rose - For secondary sections, card backgrounds, subtle elements */
 
-  /* Optional: Playful Accent (if you want a tiny pop, use sparingly) */
-  --color-playful-accent: #FF7F50; /* Playful Coral - For small interactive elements, icons, hover states */
+            /* Optional: Playful Accent (if you want a tiny pop, use sparingly) */
+            --color-playful-accent: #FF7F50; /* Playful Coral - For small interactive elements, icons, hover states */
 
-  /* Font Families */
-  --font-heading: 'Montserrat', sans-serif;
-  --font-body: 'Open Sans', sans-serif;
-}
+            /* Font Families */
+            --font-heading: 'Montserrat', sans-serif;
+            --font-body: 'Open Sans', sans-serif;
+        }
 
+        /* Apply custom colors directly where Tailwind's default classes don't map to variables */
+        .bg-color-light { background-color: var(--color-light); }
+        .bg-color-accent { background-color: var(--color-accent); }
+        .bg-color-colour2 { background-color: var(--color-colour2); }
+        .text-color-dark { color: var(--color-dark); }
+        .text-color-light-on-accent { color: var(--color-dark); } /* Text color for buttons on accents - keeping it dark for readability on light pastels */
+
+        /* Applying custom fonts */
+        .font-heading { font-family: var(--font-heading); }
+        .font-body { font-family: var(--font-body); }
+
+        /* Custom hover states for buttons to use your palette */
+        .btn-custom-hover:hover {
+            background-color: var(--color-colour2); /* Warm Dusty Rose on hover */
+        }
+        .btn-custom-focus:focus {
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(244, 199, 199, 0.5); /* Soft focus ring from Warm Dusty Rose */
+        }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
-    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md border border-gray-200">
-        <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">Choose Your Destination</h1>
+<body class="bg-color-light min-h-screen flex items-center justify-center p-4 font-body">
+    <div class="bg-color-light p-8 rounded-xl shadow-lg w-full max-w-md border border-gray-200">
+        <h1 class="text-3xl font-bold text-center text-color-dark mb-8 font-heading">Choose Your Destination</h1>
 
-        <!-- Container for the buttons, using flexbox for vertical stacking and spacing -->
         <div class="space-y-6">
-            <!-- Button 1 -->
             <button
                 id="button1"
-                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300 shadow-md"
+                class="w-full bg-color-accent text-color-light-on-accent font-semibold py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 btn-custom-hover btn-custom-focus shadow-md font-heading"
             >
                 E-Signature
             </button>
 
-            <!-- Button 2 -->
             <button
                 id="button2"
-                class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-300 shadow-md"
+                class="w-full bg-color-accent text-color-light-on-accent font-semibold py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 btn-custom-hover btn-custom-focus shadow-md font-heading"
             >
                 Merge
             </button>
 
-            <!-- Button 3 -->
-        </div>
+            </div>
     </div>
 
     <script>
@@ -63,17 +77,12 @@
 
         // Add event listeners to each button
         button1.addEventListener('click', () => {
-            // Simulate navigating to 'page1.html'
-            // In a real scenario, you would have a 'page1.html' file in the same directory
             window.location.href = 'signature.html';
         });
 
         button2.addEventListener('click', () => {
-            // Simulate navigating to 'page2.html'
-            // In a real scenario, you would have a 'page2.html' file in the same directory
             window.location.href = 'merge.html';
         });
     </script>
 </body>
 </html>
-
