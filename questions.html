@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ask Me Questions</title>
+    <title>About Me Q&A Widget</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
@@ -185,4 +185,33 @@
                 const button = document.createElement('button');
                 button.classList.add('question-button');
                 button.textContent = qna.question;
-                button.addEventListener('click', () => displayAnswer(qna.
+                button.addEventListener('click', () => displayAnswer(qna.answer));
+                questionButtonsContainer.appendChild(button);
+            });
+
+            // Initial message
+            const initialMessage = "Click a question above to learn more about me!";
+            displayAnswer(initialMessage); // Display initial message when page loads
+
+            function displayAnswer(answer) {
+                // Clear any ongoing typing animation
+                if (currentTypingTimeout) {
+                    clearTimeout(currentTypingTimeout);
+                }
+                answerTextSpan.textContent = ''; // Clear previous answer
+                typingCursor.style.display = 'inline-block'; // Ensure cursor is visible
+                typeText(answer, 0);
+            }
+
+            function typeText(text, index) {
+                if (index < text.length) {
+                    answerTextSpan.textContent += text.charAt(index);
+                    currentTypingTimeout = setTimeout(() => typeText(text, index + 1), 30); // Adjust typing speed here (milliseconds per character)
+                } else {
+                    typingCursor.style.display = 'none'; // Hide cursor after typing is complete
+                }
+            }
+        });
+    </script>
+</body>
+</html>
