@@ -6,11 +6,28 @@
     <title>Navigation Page</title>
     <!-- Tailwind CSS CDN for easy styling -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
     <style>
         /* Custom styles for the Inter font */
-        body {
-            font-family: "Inter", sans-serif;
-        }
+        :root {
+  /* Core Colors for main content and background */
+  --color-dark: #333333; /* Deep Charcoal Grey - For all main text, headings */
+  --color-light: #FDFDFD; /* Very Light Off-White / Cream - For main page backgrounds */
+
+  /* Accent Colors for visual flair and specific sections */
+  --color-accent: #A2D9D9; /* Muted Teal (or Soft Sage #C1DDC9 if you prefer) - For buttons, highlights, decorative blocks */
+  --color-colour2: #F4C7C7; /* Warm Dusty Rose - For secondary sections, card backgrounds, subtle elements */
+
+  /* Optional: Playful Accent (if you want a tiny pop, use sparingly) */
+  --color-playful-accent: #FF7F50; /* Playful Coral - For small interactive elements, icons, hover states */
+
+  /* Font Families */
+  --font-heading: 'Montserrat', sans-serif;
+  --font-body: 'Open Sans', sans-serif;
+}
+
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
