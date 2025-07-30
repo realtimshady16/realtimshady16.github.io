@@ -4,38 +4,60 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>About Me Q&A Widget</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+    
     <style>
-        /* IMPORTANT: For an iframe, remove 'min-height: 100vh' from body and container
-           unless you want the iframe itself to always take full viewport height.
-           Adjust height of the iframe in the embedding HTML instead. */
+        /* Define your custom color and font variables */
+        :root {
+            /* Core Colors for main content and background */
+            --color-dark: #333333; /* Deep Charcoal Grey - For all main text, headings */
+            --color-light: #FDFDFD; /* Very Light Off-White / Cream - For main page backgrounds */
+
+            /* Accent Colors for visual flair and specific sections */
+            --color-accent: #A2D9D9; /* Muted Teal - For buttons, highlights, decorative blocks */
+            --color-colour2: #F4C7C7; /* Warm Dusty Rose - For secondary sections, card backgrounds, subtle elements */
+
+            /* Optional: Playful Accent (if you want a tiny pop, use sparingly) */
+            --color-playful-accent: #FF7F50; /* Playful Coral - For small interactive elements, icons, hover states */
+
+            /* Font Families */
+            --font-heading: 'Montserrat', sans-serif;
+            --font-body: 'Open Sans', sans-serif;
+        }
+
+        /* Body and overall container styles */
         body {
-            font-family: Arial, sans-serif;
+            font-family: var(--font-body); /* Apply Open Sans to the body */
             display: flex;
             justify-content: center;
             align-items: center;
-            /* No min-height: 100vh here, let the content define height or parent iframe */
-            background-color: #f4f4f4;
+            background-color: var(--color-light); /* Use your light background color */
             margin: 0;
-            padding: 20px; /* Add some padding around the widget content */
-            box-sizing: border-box; /* Include padding in element's total width and height */
+            padding: 20px;
+            box-sizing: border-box;
+            color: var(--color-dark); /* Default text color from your palette */
         }
 
         .qna-widget-container {
-            background-color: #ffffff;
+            background-color: var(--color-light); /* Widget background from your palette */
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             padding: 30px;
             width: 90%;
-            /* Max width set to 6900px as requested */
-            max-width: 6900px;
+            max-width: 6900px; /* As requested */
             text-align: center;
+            border: 1px solid rgba(0, 0, 0, 0.05); /* Softer border than gray-200 */
         }
 
         h2 {
-            color: #333;
+            font-family: var(--font-heading); /* Apply Montserrat to heading */
+            color: var(--color-dark); /* Heading color from your palette */
             margin-bottom: 25px;
         }
 
+        /* Question buttons styles */
         .question-buttons {
             display: flex;
             flex-wrap: wrap;
@@ -45,38 +67,55 @@
         }
 
         .question-button {
-            background-color: #007bff;
-            color: white;
+            background-color: var(--color-accent); /* Muted Teal for buttons */
+            color: var(--color-dark); /* Dark text on light accent for readability */
             border: none;
             border-radius: 5px;
             padding: 12px 20px;
             font-size: 16px;
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            font-family: var(--font-body); /* Use Open Sans for button text */
+            flex-grow: 1; /* Allow buttons to grow to fill space */
+            max-width: calc(50% - 5px); /* Max width for two buttons per row on larger screens */
+        }
+
+        /* Adjust button width for smaller screens */
+        @media (max-width: 600px) {
+            .question-button {
+                max-width: 100%; /* Full width on small screens */
+            }
         }
 
         .question-button:hover {
-            background-color: #0056b3;
+            background-color: var(--color-colour2); /* Warm Dusty Rose on hover */
+            transform: translateY(-2px); /* Slight lift on hover */
         }
 
+        .question-button:focus {
+            outline: none; /* Remove default outline */
+            box-shadow: 0 0 0 3px rgba(244, 199, 199, 0.5); /* Soft focus ring from Warm Dusty Rose */
+        }
+
+        /* Answer display styles */
         .answer-display {
-            min-height: 100px; /* Give some space for the answer */
-            background-color: #e9ecef;
+            min-height: 100px;
+            background-color: var(--color-colour2); /* Warm Dusty Rose for answer background */
             border-radius: 8px;
             padding: 20px;
             text-align: left;
-            color: #333;
+            color: var(--color-dark); /* Dark text on pastel background for readability */
             font-size: 18px;
             line-height: 1.6;
-            overflow: hidden; /* To contain the typing cursor */
+            overflow: hidden;
             position: relative;
         }
 
         .typing-cursor {
             display: inline-block;
             width: 2px;
-            height: 1.2em; /* Adjust to font size */
-            background-color: #333;
+            height: 1.2em;
+            background-color: var(--color-dark); /* Cursor matches text color */
             animation: blink 0.4s infinite;
             vertical-align: middle;
             margin-left: 2px;
@@ -104,6 +143,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             const questionButtonsContainer = document.querySelector('.question-buttons');
             const answerTextSpan = document.getElementById('answer-text');
+            const typingCursor = document.querySelector('.typing-cursor');
             let currentTypingTimeout;
 
             // Inlined questions and answers (replace with your actual data)
@@ -132,6 +172,10 @@
                     {
                         "question": "Can you share a significant achievement?",
                         "answer": "One of my proudest achievements was leading the successful migration of a legacy system to a modern microservices architecture, which resulted in a 30% improvement in performance and a significant reduction in operational costs. This project involved extensive planning, teamwork, and problem-solving."
+                    },
+                    { // Adding one more question to demonstrate your 'unconventional' side
+                        "question": "What's a fun fact about you?",
+                        "answer": "Beyond code, I'm an avid amateur astronomer! I love spending clear nights stargazing and exploring distant galaxies through my telescope. It really puts things into perspective and fuels my sense of wonder and discovery, much like solving a complex coding challenge."
                     }
                 ]
             };
@@ -141,26 +185,4 @@
                 const button = document.createElement('button');
                 button.classList.add('question-button');
                 button.textContent = qna.question;
-                button.addEventListener('click', () => displayAnswer(qna.answer));
-                questionButtonsContainer.appendChild(button);
-            });
-
-            function displayAnswer(answer) {
-                // Clear any ongoing typing animation
-                if (currentTypingTimeout) {
-                    clearTimeout(currentTypingTimeout);
-                }
-                answerTextSpan.textContent = ''; // Clear previous answer
-                typeText(answer, 0);
-            }
-
-            function typeText(text, index) {
-                if (index < text.length) {
-                    answerTextSpan.textContent += text.charAt(index);
-                    currentTypingTimeout = setTimeout(() => typeText(text, index + 1), 50); // Adjust typing speed here (milliseconds per character)
-                }
-            }
-        });
-    </script>
-</body>
-</html>
+                button.addEventListener('click', () => displayAnswer(qna.
