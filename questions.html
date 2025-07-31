@@ -32,40 +32,43 @@
             font-family: var(--font-body);
             display: flex;
             justify-content: center;
-            /* Changed align-items to flex-start on smaller screens for better vertical flow */
-            align-items: flex-start; /* Default for top alignment */
+            align-items: center; /* Keep centered for embedding, assume parent iframe handles overall height */
             background-color: var(--color-light);
             margin: 0;
             padding: 20px;
             box-sizing: border-box;
             color: var(--color-dark);
-            min-height: 100vh; /* Ensure body takes full height for centering on desktop */
-        }
-
-        /* Media query to center content vertically on larger screens only */
-        @media (min-width: 768px) {
-            body {
-                align-items: center; /* Center vertically on larger screens */
-            }
+            /* Remove min-height: 100vh here. Let the iframe or content define the height. */
         }
 
         .qna-widget-container {
             background-color: var(--color-light);
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 20px; /* Slightly reduced padding for smaller screens */
-            width: 90%; /* Maintain responsiveness */
-            max-width: 600px; /* **Adjusted Max Width for better responsiveness** */
+            padding: 20px;
+            width: 90%;
+            max-width: 600px; /* Sensible max-width for a widget */
             text-align: center;
             border: 1px solid rgba(0, 0, 0, 0.05);
-            margin: auto; /* Ensures it's centered horizontally */
-            box-sizing: border-box; /* Include padding/border in width calculation */
+            margin: auto;
+            box-sizing: border-box;
+            
+            /* --- Scrollbar Implementation --- */
+            max-height: 80vh; /* **Set a maximum height relative to viewport** */
+            overflow-y: auto; /* **Add vertical scrollbar when content overflows** */
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+            /* --- End Scrollbar Implementation --- */
         }
 
         h2 {
             font-family: var(--font-heading);
             color: var(--color-dark);
-            margin-bottom: 20px; /* Slightly reduced margin */
+            margin-bottom: 20px;
+            position: sticky; /* Make heading sticky so it's always visible when scrolling */
+            top: 0;
+            background-color: var(--color-light); /* Match container background for sticky effect */
+            padding-bottom: 10px; /* Add some space below heading */
+            z-index: 10; /* Ensure it stays on top of scrolled content */
         }
 
         /* Question buttons styles */
@@ -74,7 +77,7 @@
             flex-wrap: wrap;
             justify-content: center;
             gap: 10px;
-            margin-bottom: 25px; /* Slightly reduced margin */
+            margin-bottom: 25px;
         }
 
         .question-button {
@@ -82,22 +85,20 @@
             color: var(--color-dark);
             border: none;
             border-radius: 5px;
-            padding: 10px 15px; /* Slightly reduced padding for buttons */
-            font-size: 15px; /* Slightly reduced font size for buttons */
+            padding: 10px 15px;
+            font-size: 15px;
             cursor: pointer;
             transition: background-color 0.3s ease, transform 0.2s ease;
             font-family: var(--font-body);
             flex-grow: 1;
-            /* Using a combination of max-width for rows, and full width on small screens */
-            max-width: calc(50% - 5px); /* Max width for two buttons per row on larger screens */
-            text-align: center; /* Ensure button text is centered */
+            max-width: calc(50% - 5px);
+            text-align: center;
         }
 
-        /* Adjust button width for smaller screens */
         @media (max-width: 600px) {
             .question-button {
-                max-width: 100%; /* Full width on small screens */
-                padding: 12px 20px; /* Slightly more padding when full width */
+                max-width: 100%;
+                padding: 12px 20px;
                 font-size: 16px;
             }
         }
@@ -114,23 +115,22 @@
 
         /* Answer display styles */
         .answer-display {
-            min-height: 100px; /* Maintain minimum height */
+            min-height: 100px;
             background-color: var(--color-colour2);
             border-radius: 8px;
             padding: 20px;
             text-align: left;
             color: var(--color-dark);
-            font-size: 17px; /* Slightly reduced font size for body text on mobile */
+            font-size: 17px;
             line-height: 1.6;
-            overflow-wrap: break-word; /* Ensure long words break */
-            word-wrap: break-word; /* For older browsers */
+            overflow-wrap: break-word;
+            word-wrap: break-word;
             position: relative;
         }
 
-        /* Adjust answer display font size for larger screens */
         @media (min-width: 768px) {
             .answer-display {
-                font-size: 18px; /* Original font size on larger screens */
+                font-size: 18px;
             }
         }
 
@@ -220,6 +220,12 @@
                 answerTextSpan.textContent = ''; // Clear previous answer
                 typingCursor.style.display = 'inline-block'; // Ensure cursor is visible
                 typeText(answer, 0);
+
+                // Scroll to the top of the answer display when a new answer starts typing
+                const answerDisplay = document.querySelector('.answer-display');
+                if (answerDisplay) {
+                    answerDisplay.scrollTop = 0;
+                }
             }
 
             function typeText(text, index) {
