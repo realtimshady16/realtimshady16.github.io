@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Vision Board</title>
+    <style>
+        /* Basic styling for the body and overall container */
+        body {
+            font-family: 'Inter', sans-serif; /* Using Inter font as per instructions */
+            margin: 0;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align to top for better content flow */
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            color: #333; /* Default text color */
+        }
+
+        /* Main container for the vision board application */
+        .container {
+            background-color: #fff;
+            border-radius: 12px; /* Rounded corners for the main container */
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-height: 80vh; /* Ensure it takes up a good portion of the screen */
+        }
+
+        /* Header section styling */
+        header {
+            background-color: #007bff; /* Primary blue color */
+            color: white;
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #0056b3; /* Darker border for separation */
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2em; /* Larger heading */
+            font-weight: 600;
+        }
+
+        /* Navigation buttons in the header */
+        nav button {
+            background-color: #0056b3; /* Darker blue for buttons */
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px; /* Rounded corners for buttons */
+            cursor: pointer;
+            font-size: 1.05em;
+            margin-left: 15px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+        }
+
+        nav button:hover {
+            background-color: #004085; /* Even darker blue on hover */
+            transform: translateY(-2px); /* Slight lift effect */
+        }
+
+        /* Main content area, containing sidebar and vision board */
+        main {
+            display: flex;
+            flex-grow: 1;
+            min-height: 0; /* Allow flex item to shrink */
+        }
+
+        /* Sections sidebar styling */
+        .sections-sidebar {
+            width: 250px; /* Wider sidebar */
+            background-color: #e9ecef;
+            padding: 20px;
+            border-right: 1px solid #ddd;
+            box-sizing: border-box;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px; /* Space between elements */
+        }
+
+        .sections-sidebar h2 {
+            margin-top: 0;
+            color: #495057;
+            font-size: 1.6em;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #ced4da;
+            padding-bottom: 10px;
+        }
+
+        /* List of section buttons */
+        #sectionsList {
+            display: flex;
+            flex-direction: column;
+            gap: 8px; /* Space between section buttons */
+            flex-grow: 1; /* Allow list to take available space */
+            overflow-y: auto; /* Enable scrolling for many sections */
+            padding-right: 5px; /* Prevent scrollbar from overlapping content */
+        }
+
+        #sectionsList button {
+            display: block;
+            width: 100%;
+            padding: 12px 18px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px; /* Rounded corners */
+            text-align: left;
+            cursor: pointer;
+            font-size: 1.05em;
+            transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+
+        #sectionsList button:hover {
+            background-color: #e2e6ea;
+            border-color: #cdd3d9;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+        }
+
+        #sectionsList button.active {
+            background-color: #007bff;
+            color: white;
+            border-color: #007bff;
+            box-shadow: 0 3px 8px rgba(0, 123, 255, 0.3);
+            font-weight: bold;
+        }
+
+        /* Vision board content area */
+        .vision-board-area {
+            flex-grow: 1;
+            padding: 25px;
+            background-color: #fdfdfd;
+            overflow-y: auto; /* Enable scrolling for board content */
+        }
+
+        /* Grid layout for content cards */
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Responsive grid */
+            gap: 25px; /* More space between cards */
+        }
+
+        /* Styling for individual content cards (Sticky Notes, Embeds, Images, Ideas) */
+        .content-card {
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px; /* More rounded corners */
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            padding: 20px;
+            min-height: 250px; /* Taller cards */
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .content-card:hover {
+            transform: translateY(-3px); /* Slight lift on hover */
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.12);
+        }
+
+        .content-card h3 {
+            margin-top: 0;
+            color: #555;
+            font-size: 1.4em;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 12px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        /* Container for individual content items within a card */
+        .content-items {
+            flex-grow: 1;
+            padding-bottom: 10px;
+            overflow-y: auto; /* Scrollable content area */
+            max-height: 350px; /* Max height for scrollable content areas */
+            display: flex;
+            flex-direction: column;
+            gap: 10px; /* Space between content items */
+        }
+
+        /* Styling for individual content items */
+        .content-item {
+            background-color: #f1f1f1;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start; /* Align content to top */
+            word-wrap: break-word;
+            white-space: pre-wrap; /* Preserve whitespace and break lines */
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+            position: relative; /* For positioning remove button */
+        }
+
+        /* Specific background colors for different content types */
+        .content-item.sticky-note-item {
+            background-color: #fffacd; /* Light yellow */
+        }
+
+        .content-item.embed-item {
+            background-color: #e6f7ff; /* Light blue */
+        }
+
+        .content-item.image-item {
+            background-color: #e6ffe6; /* Light green */
+        }
+
+        .content-item .item-content {
+            flex-grow: 1;
+            padding-right: 30px; /* Space for remove button */
+        }
+
+        .content-item .remove-btn {
+            background-color: #dc3545; /* Red for remove */
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 50%; /* Circular button */
+            cursor: pointer;
+            font-size: 0.75em;
+            font-weight: bold;
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+            line-height: 1; /* Adjust for better centering of 'X' */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 24px; /* Fixed size */
+            height: 24px; /* Fixed size */
+        }
+
+        .content-item .remove-btn:hover {
+            background-color: #c82333;
+            transform: scale(1.1);
+        }
+
+        .content-item img {
+            max-width: 100%; /* Make images responsive within their container */
+            height: auto;
+            max-height: 150px; /* Limit image height */
+            display: block;
+            margin-bottom: 8px; /* Space below image */
+            border-radius: 4px;
+        }
+
+        /* Button to add new content within a card */
+        .add-content-btn {
+            background-color: #28a745; /* Green for add buttons */
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-top: auto; /* Push button to the bottom */
+            align-self: flex-end; /* Align button to the right */
+            transition: background-color 0.2s ease, transform 0.2s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .add-content-btn:hover {
+            background-color: #218838;
+            transform: translateY(-2px);
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top of everything */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            background-color: rgba(0,0,0,0.6); /* Darker overlay */
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(3px); /* Subtle blur effect */
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            padding: 30px;
+            border: 1px solid #888;
+            width: 90%;
+            max-width: 550px; /* Slightly larger modal */
+            border-radius: 12px;
+            position: relative;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+            animation: fadeIn 0.3s ease-out; /* Fade in animation */
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .close-button {
+            color: #aaa;
+            font-size: 32px; /* Larger close button */
+            font-weight: bold;
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: #555;
+        }
+
+        .modal-content h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 1.8em;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .modal-content input[type="text"],
+        .modal-content textarea {
+            width: calc(100% - 24px); /* Account for padding */
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 1.05em;
+            box-sizing: border-box; /* Include padding in width */
+        }
+
+        .modal-content textarea {
+            min-height: 100px; /* Larger text area */
+            resize: vertical; /* Allow vertical resizing */
+        }
+
+        .modal-content button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            float: right; /* Align button to the right */
+            transition: background-color 0.2s ease, transform 0.2s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-content button:hover {
+            background-color: #0056b3;
+            transform: translateY(-1px);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                flex-direction: column;
+                min-height: unset; /* Remove min-height for smaller screens */
+            }
+
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 15px;
+            }
+
+            header h1 {
+                margin-bottom: 10px;
+                font-size: 1.5em;
+            }
+
+            nav {
+                width: 100%;
+                display: flex;
+                flex-wrap: wrap; /* Allow buttons to wrap */
+                gap: 10px; /* Space between nav buttons */
+            }
+
+            nav button {
+                margin-left: 0;
+                flex-grow: 1; /* Allow buttons to grow and fill space */
+                padding: 10px 15px;
+            }
+
+            main {
+                flex-direction: column;
+            }
+
+            .sections-sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid #ddd;
+                padding: 15px;
+            }
+
+            .sections-sidebar h2 {
+                text-align: center;
+                margin-bottom: 10px;
+            }
+
+            #sectionsList {
+                flex-direction: row; /* Horizontal scroll for sections on small screens */
+                overflow-x: auto;
+                white-space: nowrap;
+                padding-bottom: 10px;
+                -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+            }
+
+            #sectionsList button {
+                flex-shrink: 0; /* Prevent buttons from shrinking */
+                width: auto; /* Allow buttons to size based on content */
+                margin-right: 10px;
+            }
+
+            .vision-board-area {
+                padding: 15px;
+            }
+
+            .content-grid {
+                grid-template-columns: 1fr; /* Single column for content cards */
+            }
+
+            .modal-content {
+                width: 95%;
+                padding: 20px;
+            }
+
+            .modal-content button {
+                width: 100%;
+                float: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>My Vision Board</h1>
+            <nav>
+                <!-- These buttons are for general actions, not specific to content types -->
+                <button id="addSectionBtn">Add Section</button>
+                <!-- The "View Inspirations" and "Add Inspirations" buttons from the sketch are implicitly handled by section switching and "Add Content" buttons within cards -->
+            </nav>
+        </header>
+
+        <main>
+            <aside class="sections-sidebar">
+                <h2>Sections</h2>
+                <div id="sectionsList">
+                    <!-- Section buttons will be dynamically loaded here by JavaScript -->
+                </div>
+            </aside>
+
+            <section class="vision-board-area" id="visionBoardArea">
+                <div class="content-grid">
+                    <!-- Sticky Notes Card -->
+                    <div class="content-card sticky-notes">
+                        <h3>Sticky Notes</h3>
+                        <div class="content-items" id="stickyNotesContainer">
+                            <!-- Sticky notes will be added here by JavaScript -->
+                        </div>
+                        <button class="add-content-btn" data-content-type="stickyNote">Add Sticky Note</button>
+                    </div>
+
+                    <!-- Embeds Card -->
+                    <div class="content-card embeds">
+                        <h3>Embeds</h3>
+                        <div class="content-items" id="embedsContainer">
+                            <!-- Embeds will be added here by JavaScript -->
+                        </div>
+                        <button class="add-content-btn" data-content-type="embed">Add Embed</button>
+                    </div>
+
+                    <!-- Images Card -->
+                    <div class="content-card images">
+                        <h3>Images</h3>
+                        <div class="content-items" id="imagesContainer">
+                            <!-- Images will be added here by JavaScript -->
+                        </div>
+                        <button class="add-content-btn" data-content-type="image">Add Image</button>
+                    </div>
+
+                    <!-- Ideas Card (Placeholder for future expansion) -->
+                    <div class="content-card ideas">
+                        <h3>Ideas</h3>
+                        <div class="content-items" id="ideasContainer">
+                            <!-- Ideas content can be added here -->
+                        </div>
+                        <button class="add-content-btn" data-content-type="idea">Add Idea</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Universal Modal for adding sections and content -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2 id="modalTitle"></h2>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Get references to key DOM elements
+            const sectionsList = document.getElementById('sectionsList');
+            const visionBoardArea = document.getElementById('visionBoardArea');
+            const addSectionBtn = document.getElementById('addSectionBtn');
+            const modal = document.getElementById('modal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+            const closeButton = document.querySelector('.modal .close-button');
+
+            // Initialize sections data from localStorage or an empty object
+            let sections = loadSections();
+            // Determine the active section, defaulting to 'default' if none is stored
+            let activeSectionId = localStorage.getItem('activeSectionId') || 'default';
+
+            // Ensure a 'default' section always exists if the storage is empty
+            if (Object.keys(sections).length === 0) {
+                sections['default'] = {
+                    name: 'My First Vision Board', // Default name for the first section
+                    content: {
+                        stickyNote: [],
+                        embed: [],
+                        image: [],
+                        idea: [] // Initialize all content types
+                    }
+                };
+                saveSections(); // Save the newly created default section
+            }
+
+            // --- Event Listeners ---
+
+            // Listener for adding a new section via the header button
+            addSectionBtn.addEventListener('click', () => openAddSectionModal());
+
+            // Delegated event listener for section buttons in the sidebar
+            sectionsList.addEventListener('click', (e) => {
+                // Check if the clicked element or its parent is a section button
+                const targetButton = e.target.closest('.section-button');
+                if (targetButton) {
+                    switchSection(targetButton.dataset.sectionId);
+                }
+            });
+
+            // Delegated event listener for add content buttons and remove buttons within the vision board area
+            visionBoardArea.addEventListener('click', (e) => {
+                // Check if an 'Add Content' button was clicked
+                if (e.target.classList.contains('add-content-btn')) {
+                    const contentType = e.target.dataset.contentType;
+                    openAddContentModal(contentType);
+                }
+                // Check if a 'Remove' button was clicked
+                else if (e.target.classList.contains('remove-btn')) {
+                    // Find the closest parent content item to get its type and ID
+                    const contentItemElement = e.target.closest('.content-item');
+                    if (contentItemElement) {
+                        const contentType = contentItemElement.dataset.contentType;
+                        const itemId = contentItemElement.dataset.itemId;
+                        removeContentItem(contentType, itemId);
+                    }
+                }
+            });
+
+            // Listener for the modal's close button
+            closeButton.addEventListener('click', () => closeModal());
+
+            // Listener to close the modal if the user clicks outside of it
+            window.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    closeModal();
+                }
+            });
+
+            // --- Initialization ---
+            // Render the list of sections in the sidebar
+            renderSections();
+            // Render the content of the initially active section
+            renderVisionBoard(activeSectionId);
+
+            // --- Data Management Functions ---
+
+            /**
+             * Loads sections data from localStorage.
+             * Ensures all content type arrays are initialized for consistency.
+             * @returns {Object} The sections data.
+             */
+            function loadSections() {
+                try {
+                    const storedSections = JSON.parse(localStorage.getItem('visionBoardSections')) || {};
+                    // Iterate through each section to ensure content arrays exist
+                    for (const sectionId in storedSections) {
+                        const section = storedSections[sectionId];
+                        if (!section.content) {
+                            section.content = {};
+                        }
+                        // Initialize arrays for each content type if they don't exist
+                        if (!section.content.stickyNote) section.content.stickyNote = [];
+                        if (!section.content.embed) section.content.embed = [];
+                        if (!section.content.image) section.content.image = [];
+                        if (!section.content.idea) section.content.idea = [];
+                    }
+                    return storedSections;
+                } catch (e) {
+                    console.error("Error loading sections from localStorage:", e);
+                    // Return an empty object if there's a parsing error
+                    return {};
+                }
+            }
+
+            /**
+             * Saves the current sections data to localStorage.
+             */
+            function saveSections() {
+                localStorage.setItem('visionBoardSections', JSON.stringify(sections));
+            }
+
+            /**
+             * Generates a simple unique ID for new items.
+             * @returns {string} A unique ID string.
+             */
+            function generateUniqueId() {
+                return '_' + Math.random().toString(36).substr(2, 9);
+            }
+
+            // --- UI Rendering Functions ---
+
+            /**
+             * Renders (or re-renders) the list of section buttons in the sidebar.
+             */
+            function renderSections() {
+                sectionsList.innerHTML = ''; // Clear existing buttons
+                for (const sectionId in sections) {
+                    const section = sections[sectionId];
+                    const button = document.createElement('button');
+                    button.classList.add('section-button');
+                    // Add 'active' class if this is the currently active section
+                    if (sectionId === activeSectionId) {
+                        button.classList.add('active');
+                    }
+                    button.dataset.sectionId = sectionId; // Store section ID for event handling
+                    button.textContent = section.name;
+                    sectionsList.appendChild(button);
+                }
+            }
+
+            /**
+             * Renders the content of a specific vision board section.
+             * @param {string} sectionId - The ID of the section to render.
+             */
+            function renderVisionBoard(sectionId) {
+                activeSectionId = sectionId; // Update the active section ID
+                localStorage.setItem('activeSectionId', activeSectionId); // Persist active section
+
+                // Update the 'active' class on section buttons
+                document.querySelectorAll('.section-button').forEach(btn => {
+                    btn.classList.remove('active');
+                    if (btn.dataset.sectionId === sectionId) {
+                        btn.classList.add('active');
+                    }
+                });
+
+                const currentSection = sections[sectionId];
+                if (!currentSection) {
+                    console.error('Section not found:', sectionId);
+                    return; // Exit if section does not exist
+                }
+
+                // Clear existing content from all containers
+                document.getElementById('stickyNotesContainer').innerHTML = '';
+                document.getElementById('embedsContainer').innerHTML = '';
+                document.getElementById('imagesContainer').innerHTML = '';
+                document.getElementById('ideasContainer').innerHTML = '';
+
+                // Populate containers with content from the current section
+                currentSection.content.stickyNote.forEach(item => {
+                    document.getElementById('stickyNotesContainer').appendChild(createContentItemElement('stickyNote', item));
+                });
+                currentSection.content.embed.forEach(item => {
+                    document.getElementById('embedsContainer').appendChild(createContentItemElement('embed', item));
+                });
+                currentSection.content.image.forEach(item => {
+                    document.getElementById('imagesContainer').appendChild(createContentItemElement('image', item));
+                });
+                // Future: Add rendering for 'idea' content here if implemented
+                currentSection.content.idea.forEach(item => {
+                    document.getElementById('ideasContainer').appendChild(createContentItemElement('idea', item));
+                });
+            }
+
+            /**
+             * Creates an HTML element for a content item (sticky note, embed, image).
+             * @param {string} type - The type of content ('stickyNote', 'embed', 'image', 'idea').
+             * @param {Object} item - The content item object containing its data (e.g., id, text, url).
+             * @returns {HTMLElement} The created content item div element.
+             */
+            function createContentItemElement(type, item) {
+                const itemDiv = document.createElement('div');
+                itemDiv.classList.add('content-item', `${type}-item`);
+                itemDiv.dataset.contentType = type; // Store content type for removal
+                itemDiv.dataset.itemId = item.id; // Store item ID for removal
+
+                let contentHTML = '';
+                // Generate specific HTML based on content type
+                if (type === 'stickyNote') {
+                    contentHTML = `<span>${item.text}</span>`;
+                } else if (type === 'embed') {
+                    // For embeds, displaying the URL as text. For actual embedding,
+                    // you'd need to parse the URL and create an iframe,
+                    // which can be complex due to security and varying embed codes.
+                    contentHTML = `<span>${item.url}</span>`;
+                } else if (type === 'image') {
+                    // Use a placeholder image if the provided URL fails to load
+                    contentHTML = `<img src="${item.url}" alt="${item.alt || 'Vision Board Image'}" onerror="this.onerror=null;this.src='https://placehold.co/100x100/A0A0A0/FFFFFF?text=Image+Error';">
+                                   <span>${item.alt || ''}</span>`;
+                } else if (type === 'idea') {
+                    contentHTML = `<span>${item.text}</span>`;
+                }
+
+                itemDiv.innerHTML = `
+                    <div class="item-content">${contentHTML}</div>
+                    <button class="remove-btn">X</button>
+                `;
+                return itemDiv;
+            }
+
+            // --- Section Management ---
+
+            /**
+             * Adds a new section to the vision board.
+             * @param {string} sectionName - The name of the new section.
+             */
+            function addSection(sectionName) {
+                const newSectionId = generateUniqueId();
+                sections[newSectionId] = {
+                    name: sectionName,
+                    content: {
+                        stickyNote: [],
+                        embed: [],
+                        image: [],
+                        idea: []
+                    }
+                };
+                saveSections(); // Save updated sections data
+                renderSections(); // Re-render sidebar to show new section
+                switchSection(newSectionId); // Automatically switch to the new section
+                console.log(`Added new section: "${sectionName}" with ID: ${newSectionId}`);
+            }
+
+            /**
+             * Switches the active vision board section.
+             * @param {string} sectionId - The ID of the section to switch to.
+             */
+            function switchSection(sectionId) {
+                if (sections[sectionId]) {
+                    renderVisionBoard(sectionId);
+                    console.log(`Switched to section: ${sections[sectionId].name}`);
+                } else {
+                    console.warn(`Attempted to switch to non-existent section: ${sectionId}`);
+                }
+            }
+
+            // --- Content Management ---
+
+            /**
+             * Adds a new content item to the currently active section.
+             * @param {string} type - The type of content ('stickyNote', 'embed', 'image', 'idea').
+             * @param {Object} data - The data for the new content item (e.g., { text: "..." } or { url: "..." }).
+             */
+            function addContentItem(type, data) {
+                const currentSection = sections[activeSectionId];
+                if (currentSection) {
+                    const newItem = { id: generateUniqueId(), ...data }; // Create item with unique ID
+                    currentSection.content[type].push(newItem); // Add to the specific content type array
+                    saveSections(); // Save updated sections data
+                    renderVisionBoard(activeSectionId); // Re-render the board to display the new item
+                    console.log(`Added ${type} to section "${currentSection.name}":`, newItem);
+                } else {
+                    console.error(`Cannot add content: Active section "${activeSectionId}" not found.`);
+                }
+            }
+
+            /**
+             * Removes a content item from the currently active section.
+             * @param {string} type - The type of content ('stickyNote', 'embed', 'image', 'idea').
+             * @param {string} itemId - The ID of the item to remove.
+             */
+            function removeContentItem(type, itemId) {
+                const currentSection = sections[activeSectionId];
+                if (currentSection && currentSection.content[type]) {
+                    // Filter out the item with the matching ID
+                    currentSection.content[type] = currentSection.content[type].filter(item => item.id !== itemId);
+                    saveSections(); // Save updated sections data
+                    renderVisionBoard(activeSectionId); // Re-render the board to reflect the removal
+                    console.log(`Removed ${type} with ID ${itemId} from section "${currentSection.name}"`);
+                } else {
+                    console.error(`Cannot remove content: Type "${type}" or item ID "${itemId}" not found in section "${activeSectionId}".`);
+                }
+            }
+
+            // --- Modal Functions ---
+
+            /**
+             * Displays the modal.
+             */
+            function openModal() {
+                modal.style.display = 'flex'; // Use flexbox for centering
+            }
+
+            /**
+             * Hides the modal and clears its body content.
+             */
+            function closeModal() {
+                modal.style.display = 'none';
+                modalBody.innerHTML = ''; // Clear modal content to prepare for next use
+            }
+
+            /**
+             * Opens the modal for adding a new section.
+             */
+            function openAddSectionModal() {
+                modalTitle.textContent = 'Add New Section';
+                modalBody.innerHTML = `
+                    <input type="text" id="newSectionName" placeholder="Enter Section Name" />
+                    <button id="saveSectionBtn">Add Section</button>
+                `;
+                openModal();
+
+                // Add event listener for the 'Add Section' button inside the modal
+                document.getElementById('saveSectionBtn').addEventListener('click', () => {
+                    const newSectionNameInput = document.getElementById('newSectionName');
+                    const newSectionName = newSectionNameInput.value.trim();
+                    if (newSectionName) {
+                        addSection(newSectionName);
+                        closeModal();
+                    } else {
+                        // Use the modal itself for error messages instead of alert()
+                        showModalMessage('Please enter a section name.', 'Error');
+                    }
+                });
+            }
+
+            /**
+             * Opens the modal for adding various types of content (sticky note, embed, image, idea).
+             * @param {string} contentType - The type of content to add.
+             */
+            function openAddContentModal(contentType) {
+                // Capitalize the first letter for display in the modal title
+                modalTitle.textContent = `Add ${contentType.charAt(0).toUpperCase() + contentType.slice(1).replace(/([A-Z])/g, ' $1').trim()}`;
+
+                let formHTML = '';
+                let primaryInputId = ''; // Used for validation check
+                let primaryInputLabel = ''; // Used for validation message
+
+                // Construct the modal form based on the content type
+                switch (contentType) {
+                    case 'stickyNote':
+                        formHTML = `<textarea id="contentInput" placeholder="Type your sticky note text here..."></textarea>`;
+                        primaryInputId = 'contentInput';
+                        primaryInputLabel = 'text';
+                        break;
+                    case 'embed':
+                        formHTML = `<input type="text" id="contentInput" placeholder="Paste embed URL (e.g., YouTube, Vimeo, etc.)"/>`;
+                        primaryInputId = 'contentInput';
+                        primaryInputLabel = 'URL';
+                        break;
+                    case 'image':
+                        formHTML = `
+                            <input type="text" id="imageUrlInput" placeholder="Paste image URL (e.g., .jpg, .png, .gif)" />
+                            <input type="text" id="imageAltInput" placeholder="Image Description (Optional)" />
+                        `;
+                        primaryInputId = 'imageUrlInput';
+                        primaryInputLabel = 'image URL';
+                        break;
+                    case 'idea':
+                        formHTML = `<textarea id="contentInput" placeholder="Write down your idea..."></textarea>`;
+                        primaryInputId = 'contentInput';
+                        primaryInputLabel = 'idea text';
+                        break;
+                    default:
+                        formHTML = '<p>Unsupported content type for adding.</p>';
+                        break;
+                }
+
+                modalBody.innerHTML = `
+                    ${formHTML}
+                    <button id="saveContentBtn">Add</button>
+                `;
+                openModal();
+
+                // Add event listener for the 'Add' button inside the content modal
+                document.getElementById('saveContentBtn').addEventListener('click', () => {
+                    let data = {};
+                    let isValid = false;
+
+                    // Collect data and validate based on content type
+                    if (contentType === 'image') {
+                        const imageUrl = document.getElementById('imageUrlInput').value.trim();
+                        const imageAlt = document.getElementById('imageAltInput').value.trim();
+                        if (imageUrl) {
+                            data = { url: imageUrl, alt: imageAlt };
+                            isValid = true;
+                        }
+                    } else {
+                        const contentValue = document.getElementById('contentInput').value.trim();
+                        if (contentValue) {
+                            if (contentType === 'stickyNote' || contentType === 'idea') {
+                                data = { text: contentValue };
+                                isValid = true;
+                            } else if (contentType === 'embed') {
+                                data = { url: contentValue };
+                                isValid = true;
+                            }
+                        }
+                    }
+
+                    if (isValid) {
+                        addContentItem(contentType, data);
+                        closeModal();
+                    } else {
+                        // Use the modal itself for error messages
+                        showModalMessage(`Please enter valid ${primaryInputLabel}.`, 'Input Required');
+                    }
+                });
+            }
+
+            /**
+             * Displays a simple message within the existing modal.
+             * @param {string} message - The message to display.
+             * @param {string} title - The title for the message modal.
+             */
+            function showModalMessage(message, title = 'Message') {
+                modalTitle.textContent = title;
+                modalBody.innerHTML = `
+                    <p>${message}</p>
+                    <button id="modalMessageOkBtn">OK</button>
+                `;
+                openModal();
+                document.getElementById('modalMessageOkBtn').addEventListener('click', () => {
+                    closeModal();
+                    // Re-open the previous modal if it was an add-content/section modal
+                    // This is a simple approach; for more complex flows, you might store modal state.
+                    if (title !== 'Message' && title !== 'Input Required') { // Check if it was an error message, not a primary input modal
+                        // This logic might need refinement if you have many modal types
+                        // For now, it just closes the message modal.
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
+
