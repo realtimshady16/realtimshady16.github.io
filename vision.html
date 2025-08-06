@@ -141,85 +141,66 @@
             padding: 25px;
             background-color: #fdfdfd;
             overflow-y: auto; /* Enable scrolling for board content */
-        }
-
-        /* Grid layout for content cards */
-        .content-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Responsive grid */
-            gap: 25px; /* More space between cards */
-        }
-
-        /* Styling for individual content cards (Sticky Notes, Embeds, Images, Ideas) */
-        .content-card {
-            background-color: #ffffff;
-            border: 1px solid #e0e0e0;
-            border-radius: 10px; /* More rounded corners */
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-            padding: 20px;
-            min-height: 250px; /* Taller cards */
-            display: flex;
-            flex-direction: column;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .content-card:hover {
-            transform: translateY(-3px); /* Slight lift on hover */
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.12);
-        }
-
-        .content-card h3 {
-            margin-top: 0;
-            color: #555;
-            font-size: 1.4em;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 12px;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-
-        /* Container for individual content items within a card */
-        .content-items {
-            flex-grow: 1;
-            padding-bottom: 10px;
-            overflow-y: auto; /* Scrollable content area */
-            max-height: 350px; /* Max height for scrollable content areas */
-            display: flex;
-            flex-direction: column;
-            gap: 10px; /* Space between content items */
+            display: flex; /* Use flexbox for content items */
+            flex-wrap: wrap; /* Allow items to wrap to the next line */
+            gap: 20px; /* Space between individual content items */
+            align-content: flex-start; /* Align content to the start of the cross axis */
         }
 
         /* Styling for individual content items */
         .content-item {
-            background-color: #f1f1f1;
+            background-color: #ffffff;
             border: 1px solid #ddd;
-            border-radius: 6px;
-            padding: 12px;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            position: relative;
+            min-width: 200px; /* Minimum width for content items */
+            max-width: 300px; /* Maximum width for content items */
+            flex-basis: calc(33.33% - 20px); /* Approx 3 items per row on large screens */
+            box-sizing: border-box; /* Include padding/border in width */
             display: flex;
-            justify-content: space-between;
-            align-items: flex-start; /* Align content to top */
-            word-wrap: break-word;
-            white-space: pre-wrap; /* Preserve whitespace and break lines */
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
-            position: relative; /* For positioning remove button */
+            flex-direction: column;
+            justify-content: space-between; /* Push remove button to bottom if needed */
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .content-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.12);
         }
 
         /* Specific background colors for different content types */
-        .content-item.sticky-note-item {
+        .content-item.stickyNote {
             background-color: #fffacd; /* Light yellow */
         }
 
-        .content-item.embed-item {
+        .content-item.embed {
             background-color: #e6f7ff; /* Light blue */
         }
 
-        .content-item.image-item {
+        .content-item.image {
             background-color: #e6ffe6; /* Light green */
+        }
+
+        .content-item.idea {
+            background-color: #f0e6ff; /* Light purple for ideas */
         }
 
         .content-item .item-content {
             flex-grow: 1;
-            padding-right: 30px; /* Space for remove button */
+            margin-bottom: 10px; /* Space between content and remove button */
+            word-wrap: break-word;
+            white-space: pre-wrap; /* Preserve whitespace and break lines */
+        }
+
+        .content-item img {
+            max-width: 100%;
+            height: auto;
+            max-height: 200px; /* Limit image height */
+            display: block;
+            border-radius: 6px;
+            margin-bottom: 10px;
         }
 
         .content-item .remove-btn {
@@ -235,46 +216,17 @@
             top: 8px;
             right: 8px;
             transition: background-color 0.2s ease, transform 0.2s ease;
-            line-height: 1; /* Adjust for better centering of 'X' */
+            line-height: 1;
             display: flex;
             justify-content: center;
             align-items: center;
-            width: 24px; /* Fixed size */
-            height: 24px; /* Fixed size */
+            width: 24px;
+            height: 24px;
         }
 
         .content-item .remove-btn:hover {
             background-color: #c82333;
             transform: scale(1.1);
-        }
-
-        .content-item img {
-            max-width: 100%; /* Make images responsive within their container */
-            height: auto;
-            max-height: 150px; /* Limit image height */
-            display: block;
-            margin-bottom: 8px; /* Space below image */
-            border-radius: 4px;
-        }
-
-        /* Button to add new content within a card */
-        .add-content-btn {
-            background-color: #28a745; /* Green for add buttons */
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1em;
-            margin-top: auto; /* Push button to the bottom */
-            align-self: flex-end; /* Align button to the right */
-            transition: background-color 0.2s ease, transform 0.2s ease;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-
-        .add-content-btn:hover {
-            background-color: #218838;
-            transform: translateY(-2px);
         }
 
         /* Modal styles */
@@ -302,6 +254,9 @@
             position: relative;
             box-shadow: 0 8px 30px rgba(0,0,0,0.3);
             animation: fadeIn 0.3s ease-out; /* Fade in animation */
+            display: flex; /* Use flex for internal layout */
+            flex-direction: column;
+            gap: 15px; /* Space between modal elements */
         }
 
         @keyframes fadeIn {
@@ -327,7 +282,7 @@
 
         .modal-content h2 {
             margin-top: 0;
-            margin-bottom: 20px;
+            margin-bottom: 10px; /* Reduced margin */
             color: #333;
             font-size: 1.8em;
             text-align: center;
@@ -339,7 +294,7 @@
         .modal-content textarea {
             width: calc(100% - 24px); /* Account for padding */
             padding: 12px;
-            margin-bottom: 15px;
+            margin-bottom: 0; /* No bottom margin here, gap handles it */
             border: 1px solid #ccc;
             border-radius: 8px;
             font-size: 1.05em;
@@ -347,8 +302,15 @@
         }
 
         .modal-content textarea {
-            min-height: 100px; /* Larger text area */
+            min-height: 120px; /* Larger text area */
             resize: vertical; /* Allow vertical resizing */
+        }
+
+        .modal-content .modal-buttons {
+            display: flex;
+            justify-content: flex-end; /* Align buttons to the right */
+            gap: 10px; /* Space between buttons */
+            margin-top: 10px; /* Space above buttons */
         }
 
         .modal-content button {
@@ -359,7 +321,6 @@
             border-radius: 8px;
             cursor: pointer;
             font-size: 1.1em;
-            float: right; /* Align button to the right */
             transition: background-color 0.2s ease, transform 0.2s ease;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
@@ -367,6 +328,35 @@
         .modal-content button:hover {
             background-color: #0056b3;
             transform: translateY(-1px);
+        }
+
+        /* Styles for content type selection in modal */
+        .content-type-selection {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .content-type-selection label {
+            display: flex;
+            align-items: center;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 12px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .content-type-selection label:hover {
+            background-color: #e9ecef;
+            border-color: #cdd3d9;
+        }
+
+        .content-type-selection input[type="radio"] {
+            margin-right: 10px;
+            transform: scale(1.2); /* Make radio buttons slightly larger */
         }
 
         /* Responsive adjustments */
@@ -436,10 +426,12 @@
 
             .vision-board-area {
                 padding: 15px;
+                gap: 15px; /* Smaller gap on mobile */
             }
 
-            .content-grid {
-                grid-template-columns: 1fr; /* Single column for content cards */
+            .content-item {
+                flex-basis: 100%; /* Full width on small screens */
+                max-width: 100%;
             }
 
             .modal-content {
@@ -447,9 +439,13 @@
                 padding: 20px;
             }
 
+            .modal-content .modal-buttons {
+                flex-direction: column; /* Stack buttons on mobile */
+                gap: 10px;
+            }
+
             .modal-content button {
                 width: 100%;
-                float: none;
             }
         }
     </style>
@@ -459,9 +455,8 @@
         <header>
             <h1>My Vision Board</h1>
             <nav>
-                <!-- These buttons are for general actions, not specific to content types -->
+                <button id="addInspirationBtn">Add Inspiration</button>
                 <button id="addSectionBtn">Add Section</button>
-                <!-- The "View Inspirations" and "Add Inspirations" buttons from the sketch are implicitly handled by section switching and "Add Content" buttons within cards -->
             </nav>
         </header>
 
@@ -474,43 +469,7 @@
             </aside>
 
             <section class="vision-board-area" id="visionBoardArea">
-                <div class="content-grid">
-                    <!-- Sticky Notes Card -->
-                    <div class="content-card sticky-notes">
-                        <h3>Sticky Notes</h3>
-                        <div class="content-items" id="stickyNotesContainer">
-                            <!-- Sticky notes will be added here by JavaScript -->
-                        </div>
-                        <button class="add-content-btn" data-content-type="stickyNote">Add Sticky Note</button>
-                    </div>
-
-                    <!-- Embeds Card -->
-                    <div class="content-card embeds">
-                        <h3>Embeds</h3>
-                        <div class="content-items" id="embedsContainer">
-                            <!-- Embeds will be added here by JavaScript -->
-                        </div>
-                        <button class="add-content-btn" data-content-type="embed">Add Embed</button>
-                    </div>
-
-                    <!-- Images Card -->
-                    <div class="content-card images">
-                        <h3>Images</h3>
-                        <div class="content-items" id="imagesContainer">
-                            <!-- Images will be added here by JavaScript -->
-                        </div>
-                        <button class="add-content-btn" data-content-type="image">Add Image</button>
-                    </div>
-
-                    <!-- Ideas Card (Placeholder for future expansion) -->
-                    <div class="content-card ideas">
-                        <h3>Ideas</h3>
-                        <div class="content-items" id="ideasContainer">
-                            <!-- Ideas content can be added here -->
-                        </div>
-                        <button class="add-content-btn" data-content-type="idea">Add Idea</button>
-                    </div>
-                </div>
+                <!-- All content items (sticky notes, images, embeds, ideas) will be dynamically loaded here -->
             </section>
         </main>
     </div>
@@ -521,6 +480,9 @@
             <span class="close-button">&times;</span>
             <h2 id="modalTitle"></h2>
             <div id="modalBody"></div>
+            <div class="modal-buttons" id="modalButtons">
+                <!-- Buttons will be dynamically added here -->
+            </div>
         </div>
     </div>
 
@@ -529,10 +491,12 @@
             // Get references to key DOM elements
             const sectionsList = document.getElementById('sectionsList');
             const visionBoardArea = document.getElementById('visionBoardArea');
+            const addInspirationBtn = document.getElementById('addInspirationBtn'); // New button for adding any inspiration
             const addSectionBtn = document.getElementById('addSectionBtn');
             const modal = document.getElementById('modal');
             const modalTitle = document.getElementById('modalTitle');
             const modalBody = document.getElementById('modalBody');
+            const modalButtons = document.getElementById('modalButtons'); // New container for modal buttons
             const closeButton = document.querySelector('.modal .close-button');
 
             // Initialize sections data from localStorage or an empty object
@@ -544,17 +508,15 @@
             if (Object.keys(sections).length === 0) {
                 sections['default'] = {
                     name: 'My First Vision Board', // Default name for the first section
-                    content: {
-                        stickyNote: [],
-                        embed: [],
-                        image: [],
-                        idea: [] // Initialize all content types
-                    }
+                    items: [] // All content items are now in a single 'items' array
                 };
                 saveSections(); // Save the newly created default section
             }
 
             // --- Event Listeners ---
+
+            // Listener for adding a new inspiration via the header button
+            addInspirationBtn.addEventListener('click', () => openAddInspirationModal());
 
             // Listener for adding a new section via the header button
             addSectionBtn.addEventListener('click', () => openAddSectionModal());
@@ -568,21 +530,15 @@
                 }
             });
 
-            // Delegated event listener for add content buttons and remove buttons within the vision board area
+            // Delegated event listener for remove buttons within the vision board area
             visionBoardArea.addEventListener('click', (e) => {
-                // Check if an 'Add Content' button was clicked
-                if (e.target.classList.contains('add-content-btn')) {
-                    const contentType = e.target.dataset.contentType;
-                    openAddContentModal(contentType);
-                }
                 // Check if a 'Remove' button was clicked
-                else if (e.target.classList.contains('remove-btn')) {
+                if (e.target.classList.contains('remove-btn')) {
                     // Find the closest parent content item to get its type and ID
                     const contentItemElement = e.target.closest('.content-item');
                     if (contentItemElement) {
-                        const contentType = contentItemElement.dataset.contentType;
                         const itemId = contentItemElement.dataset.itemId;
-                        removeContentItem(contentType, itemId);
+                        removeContentItem(itemId); // No need for type here, as we filter by ID
                     }
                 }
             });
@@ -613,17 +569,12 @@
             function loadSections() {
                 try {
                     const storedSections = JSON.parse(localStorage.getItem('visionBoardSections')) || {};
-                    // Iterate through each section to ensure content arrays exist
+                    // Ensure 'items' array exists for each section
                     for (const sectionId in storedSections) {
                         const section = storedSections[sectionId];
-                        if (!section.content) {
-                            section.content = {};
+                        if (!section.items) {
+                            section.items = [];
                         }
-                        // Initialize arrays for each content type if they don't exist
-                        if (!section.content.stickyNote) section.content.stickyNote = [];
-                        if (!section.content.embed) section.content.embed = [];
-                        if (!section.content.image) section.content.image = [];
-                        if (!section.content.idea) section.content.idea = [];
                     }
                     return storedSections;
                 } catch (e) {
@@ -671,6 +622,7 @@
 
             /**
              * Renders the content of a specific vision board section.
+             * All content items are now rendered into a single container.
              * @param {string} sectionId - The ID of the section to render.
              */
             function renderVisionBoard(sectionId) {
@@ -691,55 +643,37 @@
                     return; // Exit if section does not exist
                 }
 
-                // Clear existing content from all containers
-                document.getElementById('stickyNotesContainer').innerHTML = '';
-                document.getElementById('embedsContainer').innerHTML = '';
-                document.getElementById('imagesContainer').innerHTML = '';
-                document.getElementById('ideasContainer').innerHTML = '';
+                visionBoardArea.innerHTML = ''; // Clear existing content from the main board area
 
-                // Populate containers with content from the current section
-                currentSection.content.stickyNote.forEach(item => {
-                    document.getElementById('stickyNotesContainer').appendChild(createContentItemElement('stickyNote', item));
-                });
-                currentSection.content.embed.forEach(item => {
-                    document.getElementById('embedsContainer').appendChild(createContentItemElement('embed', item));
-                });
-                currentSection.content.image.forEach(item => {
-                    document.getElementById('imagesContainer').appendChild(createContentItemElement('image', item));
-                });
-                // Future: Add rendering for 'idea' content here if implemented
-                currentSection.content.idea.forEach(item => {
-                    document.getElementById('ideasContainer').appendChild(createContentItemElement('idea', item));
+                // Populate the main board area with all content items from the current section
+                currentSection.items.forEach(item => {
+                    visionBoardArea.appendChild(createContentItemElement(item));
                 });
             }
 
             /**
-             * Creates an HTML element for a content item (sticky note, embed, image).
-             * @param {string} type - The type of content ('stickyNote', 'embed', 'image', 'idea').
-             * @param {Object} item - The content item object containing its data (e.g., id, text, url).
+             * Creates an HTML element for a content item (sticky note, embed, image, idea).
+             * @param {Object} item - The content item object containing its data (id, type, and specific data like text/url).
              * @returns {HTMLElement} The created content item div element.
              */
-            function createContentItemElement(type, item) {
+            function createContentItemElement(item) {
                 const itemDiv = document.createElement('div');
-                itemDiv.classList.add('content-item', `${type}-item`);
-                itemDiv.dataset.contentType = type; // Store content type for removal
+                itemDiv.classList.add('content-item', item.type); // Add type as a class for specific styling
                 itemDiv.dataset.itemId = item.id; // Store item ID for removal
 
                 let contentHTML = '';
                 // Generate specific HTML based on content type
-                if (type === 'stickyNote') {
+                if (item.type === 'stickyNote' || item.type === 'idea') {
                     contentHTML = `<span>${item.text}</span>`;
-                } else if (type === 'embed') {
+                } else if (item.type === 'embed') {
                     // For embeds, displaying the URL as text. For actual embedding,
                     // you'd need to parse the URL and create an iframe,
                     // which can be complex due to security and varying embed codes.
                     contentHTML = `<span>${item.url}</span>`;
-                } else if (type === 'image') {
+                } else if (item.type === 'image') {
                     // Use a placeholder image if the provided URL fails to load
-                    contentHTML = `<img src="${item.url}" alt="${item.alt || 'Vision Board Image'}" onerror="this.onerror=null;this.src='https://placehold.co/100x100/A0A0A0/FFFFFF?text=Image+Error';">
+                    contentHTML = `<img src="${item.url}" alt="${item.alt || 'Vision Board Image'}" onerror="this.onerror=null;this.src='https://placehold.co/250x150/A0A0A0/FFFFFF?text=Image+Error';">
                                    <span>${item.alt || ''}</span>`;
-                } else if (type === 'idea') {
-                    contentHTML = `<span>${item.text}</span>`;
                 }
 
                 itemDiv.innerHTML = `
@@ -759,12 +693,7 @@
                 const newSectionId = generateUniqueId();
                 sections[newSectionId] = {
                     name: sectionName,
-                    content: {
-                        stickyNote: [],
-                        embed: [],
-                        image: [],
-                        idea: []
-                    }
+                    items: [] // New sections start with an empty items array
                 };
                 saveSections(); // Save updated sections data
                 renderSections(); // Re-render sidebar to show new section
@@ -795,8 +724,8 @@
             function addContentItem(type, data) {
                 const currentSection = sections[activeSectionId];
                 if (currentSection) {
-                    const newItem = { id: generateUniqueId(), ...data }; // Create item with unique ID
-                    currentSection.content[type].push(newItem); // Add to the specific content type array
+                    const newItem = { id: generateUniqueId(), type: type, ...data }; // Include 'type' in the item object
+                    currentSection.items.push(newItem); // Add to the single 'items' array
                     saveSections(); // Save updated sections data
                     renderVisionBoard(activeSectionId); // Re-render the board to display the new item
                     console.log(`Added ${type} to section "${currentSection.name}":`, newItem);
@@ -807,19 +736,18 @@
 
             /**
              * Removes a content item from the currently active section.
-             * @param {string} type - The type of content ('stickyNote', 'embed', 'image', 'idea').
              * @param {string} itemId - The ID of the item to remove.
              */
-            function removeContentItem(type, itemId) {
+            function removeContentItem(itemId) {
                 const currentSection = sections[activeSectionId];
-                if (currentSection && currentSection.content[type]) {
-                    // Filter out the item with the matching ID
-                    currentSection.content[type] = currentSection.content[type].filter(item => item.id !== itemId);
+                if (currentSection && currentSection.items) {
+                    // Filter out the item with the matching ID from the 'items' array
+                    currentSection.items = currentSection.items.filter(item => item.id !== itemId);
                     saveSections(); // Save updated sections data
                     renderVisionBoard(activeSectionId); // Re-render the board to reflect the removal
-                    console.log(`Removed ${type} with ID ${itemId} from section "${currentSection.name}"`);
+                    console.log(`Removed item with ID ${itemId} from section "${currentSection.name}"`);
                 } else {
-                    console.error(`Cannot remove content: Type "${type}" or item ID "${itemId}" not found in section "${activeSectionId}".`);
+                    console.error(`Cannot remove content: Item ID "${itemId}" not found in section "${activeSectionId}".`);
                 }
             }
 
@@ -833,11 +761,12 @@
             }
 
             /**
-             * Hides the modal and clears its body content.
+             * Hides the modal and clears its body and buttons content.
              */
             function closeModal() {
                 modal.style.display = 'none';
-                modalBody.innerHTML = ''; // Clear modal content to prepare for next use
+                modalBody.innerHTML = ''; // Clear modal content
+                modalButtons.innerHTML = ''; // Clear modal buttons
             }
 
             /**
@@ -847,6 +776,8 @@
                 modalTitle.textContent = 'Add New Section';
                 modalBody.innerHTML = `
                     <input type="text" id="newSectionName" placeholder="Enter Section Name" />
+                `;
+                modalButtons.innerHTML = `
                     <button id="saveSectionBtn">Add Section</button>
                 `;
                 openModal();
@@ -859,20 +790,52 @@
                         addSection(newSectionName);
                         closeModal();
                     } else {
-                        // Use the modal itself for error messages instead of alert()
+                        // Use the modal itself for error messages
                         showModalMessage('Please enter a section name.', 'Error');
                     }
                 });
             }
 
             /**
-             * Opens the modal for adding various types of content (sticky note, embed, image, idea).
-             * @param {string} contentType - The type of content to add.
+             * Opens the initial modal for adding any type of inspiration.
+             * This modal first asks for the content type.
              */
-            function openAddContentModal(contentType) {
-                // Capitalize the first letter for display in the modal title
-                modalTitle.textContent = `Add ${contentType.charAt(0).toUpperCase() + contentType.slice(1).replace(/([A-Z])/g, ' $1').trim()}`;
+            function openAddInspirationModal() {
+                modalTitle.textContent = 'Choose Inspiration Type';
+                modalBody.innerHTML = `
+                    <div class="content-type-selection">
+                        <label>
+                            <input type="radio" name="inspirationType" value="stickyNote" checked> Sticky Note
+                        </label>
+                        <label>
+                            <input type="radio" name="inspirationType" value="image"> Image
+                        </label>
+                        <label>
+                            <input type="radio" name="inspirationType" value="embed"> Embed
+                        </label>
+                        <label>
+                            <input type="radio" name="inspirationType" value="idea"> Idea
+                        </label>
+                    </div>
+                `;
+                modalButtons.innerHTML = `
+                    <button id="nextStepBtn">Next</button>
+                `;
+                openModal();
 
+                // Listener for the "Next" button in the type selection modal
+                document.getElementById('nextStepBtn').addEventListener('click', () => {
+                    const selectedType = document.querySelector('input[name="inspirationType"]:checked').value;
+                    openAddContentInputModal(selectedType); // Proceed to the specific input modal
+                });
+            }
+
+            /**
+             * Opens the modal for adding content, based on the selected type.
+             * @param {string} contentType - The type of content to add (e.g., 'stickyNote', 'image').
+             */
+            function openAddContentInputModal(contentType) {
+                modalTitle.textContent = `Add ${contentType.charAt(0).toUpperCase() + contentType.slice(1).replace(/([A-Z])/g, ' $1').trim()}`;
                 let formHTML = '';
                 let primaryInputId = ''; // Used for validation check
                 let primaryInputLabel = ''; // Used for validation message
@@ -907,11 +870,11 @@
                         break;
                 }
 
-                modalBody.innerHTML = `
-                    ${formHTML}
+                modalBody.innerHTML = formHTML;
+                modalButtons.innerHTML = `
                     <button id="saveContentBtn">Add</button>
+                    <button id="backToTypeSelectionBtn">Back</button>
                 `;
-                openModal();
 
                 // Add event listener for the 'Add' button inside the content modal
                 document.getElementById('saveContentBtn').addEventListener('click', () => {
@@ -947,28 +910,26 @@
                         showModalMessage(`Please enter valid ${primaryInputLabel}.`, 'Input Required');
                     }
                 });
+
+                // Listener for the "Back" button
+                document.getElementById('backToTypeSelectionBtn').addEventListener('click', () => {
+                    openAddInspirationModal(); // Go back to the type selection modal
+                });
             }
 
             /**
              * Displays a simple message within the existing modal.
+             * This is used for error messages or simple confirmations.
              * @param {string} message - The message to display.
              * @param {string} title - The title for the message modal.
              */
             function showModalMessage(message, title = 'Message') {
                 modalTitle.textContent = title;
-                modalBody.innerHTML = `
-                    <p>${message}</p>
-                    <button id="modalMessageOkBtn">OK</button>
-                `;
+                modalBody.innerHTML = `<p>${message}</p>`;
+                modalButtons.innerHTML = `<button id="modalMessageOkBtn">OK</button>`;
                 openModal();
                 document.getElementById('modalMessageOkBtn').addEventListener('click', () => {
                     closeModal();
-                    // Re-open the previous modal if it was an add-content/section modal
-                    // This is a simple approach; for more complex flows, you might store modal state.
-                    if (title !== 'Message' && title !== 'Input Required') { // Check if it was an error message, not a primary input modal
-                        // This logic might need refinement if you have many modal types
-                        // For now, it just closes the message modal.
-                    }
                 });
             }
         });
