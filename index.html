@@ -67,6 +67,12 @@
                 Merge
             </button>
 
+            <button
+                id="button3"
+                class="w-full bg-color-accent text-color-light-on-accent font-semibold py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 btn-custom-hover btn-custom-focus shadow-md font-heading"
+            >
+                Git Contribution Tool
+            </button>
             </div>
     </div>
 
@@ -74,7 +80,7 @@
         // Get references to the buttons
         const button1 = document.getElementById('button1');
         const button2 = document.getElementById('button2');
-
+        const button3 = document.getElementById('button3');
         // Add event listeners to each button
         button1.addEventListener('click', () => {
             window.location.href = 'signature.html';
@@ -82,6 +88,10 @@
 
         button2.addEventListener('click', () => {
             window.location.href = 'merge.html';
+        });
+
+        button3.addEventListener('click', () => {
+            window.location.href = 'GitTool/index.html';
         });
     </script>
 </body>
