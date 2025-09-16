@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Searchable Markdown Blog</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css">
+  <style>
+    :root{--accent:#2563eb;--muted:#6b7280}
+    body{font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial;margin:0;background:#f8fafc;color:#0f172a}
+    header{background:linear-gradient(90deg, #f8fafc, #ffffff);padding:18px 24px;border-bottom:1px solid #e6eef8;display:flex;gap:12px;align-items:center}
+    h1{margin:0;font-size:1.05rem}
+    .controls{margin-left:auto;display:flex;gap:8px;align-items:center}
+    input[type=search]{padding:10px 12px;border-radius:8px;border:1px solid #dbeafe;min-width:260px}
+    .main{display:flex;gap:20px;padding:18px}
+    .sidebar{width:340px;max-height:78vh;overflow:auto;border-right:1px solid #e6eef8;padding-right:12px}
+    .list-item{padding:10px;border-radius:8px;cursor:pointer;margin-bottom:8px}
+    .list-item:hover{background:#f1f5f9}
+    .meta{font-size:0.85rem;color:var(--muted);margin-top:4px}
+    .content{flex:1;max-height:78vh;overflow:auto;padding-left:12px}
+    .excerpt{font-size:0.95rem;color:#111827}
+    .tag{display:inline-block;background:#eef2ff;color:#3730a3;padding:4px 8px;border-radius:999px;font-size:0.75rem;margin-right:6px}
+    .small{font-size:0.85rem;color:var(--muted)}
+    .file-drop{border:2px dashed #e2e8f0;padding:12px;border-radius:8px;text-align:center;color:var(--muted)}
+    .highlight{background:linear-gradient(90deg,rgba(99,102,241,0.12),rgba(99,102,241,0.12));padding:0 2px;border-radius:2px}
+    footer{padding:12px;border-top:1px solid #e6eef8;text-align:center;color:var(--muted)}
+    button{background:var(--accent);color:white;border:none;padding:8px 12px;border-radius:8px;cursor:pointer}
+    .result-count{margin-left:8px;color:var(--muted)}
+    pre{overflow:auto;padding:12px;border-radius:8px;background:#0b1220;color:#e6eef8}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Searchable Markdown Blog</h1>
+    <div class="controls">
+      <input id="search" type="search" placeholder="Search all blogs... (fuzzy)" aria-label="Search blogs">
+      <div class="small result-count" id="resultCount"></div>
+      <input id="fileInput" type="file" accept=".md,.markdown,text/markdown" multiple style="display:none">
+      <button id="uploadBtn">Add files</button>
+      <button id="genIndexBtn">Generate index.json</button>
+    </div>
+  </header>
+
+  <div class="main">
+    <aside class="sidebar">
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
+        <strong>Posts</strong>
+        <div style="margin-left:auto" class="small">Total: <span id="totalCount">0</span></div>
+      </div>
+
+      <div class="file-drop" id="dropZone">Drop .md files here or click "Add files"</div>
+
+      <div id="list" style="margin-top:12px"></div>
+    </aside>
+
+    <section class="content">
+      <article id="postView">
+        <div id="postMeta" style="margin-bottom:12px"></div>
+        <div id="postContent">No posts loaded. Drag & drop markdown files or click Add files.</div>
+      </article>
+    </section>
+  </div>
+
+  <footer>
+    Search is client-side using Fuse.js (fuzzy). To auto-load posts from a server provide <code>index.json</code> (array of file URLs) in the same folder.
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/markdown-it@13.0.1/dist/markdown-it.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
+  <script>
+    const md = window.markdownit({html:true,linkify:true,typographer:true})
+    const listEl = document.getElementById('list')
+    const postContent = document.getElementById('postContent')
+    const postMeta = document.getElementById('postMeta')
+    const searchInput = document.getElementById('search')
+    const dropZone = document.getElementById('dropZone')
+    const fileInput = document.getElementById('fileInput')
+    const uploadBtn = document.getElementById('uploadBtn')
+    const genIndexBtn = document.getElementById('genIndexBtn')
+    const totalCount = document.getElementById('totalCount')
+    const resultCount = document.getElementById('resultCount')
+
+    let posts = [] // {id, name, raw, html, title, date, sourceUrl}
+    let fuse
+    let lastQuery = ''
+
+    function slug(name){return name.replace(/[^a-z0-9]+/gi,'-').toLowerCase()}
+
+    function renderList(items){
+      listEl.innerHTML = ''
+      items.forEach(p=>{
+        const div = document.createElement('div')
+        div.className = 'list-item'
+        div.innerHTML = `<strong>${escapeHtml(p.title||p.name)}</strong><div class="meta">${p.name} • <span class="small">${p.date||''}</span></div><div class="excerpt">${getSnippet(p, lastQuery)}</div>`
+        div.onclick = ()=> showPost(p.id)
+        listEl.appendChild(div)
+      })
+      totalCount.textContent = posts.length
+    }
+
+    function escapeHtml(s){return s ? s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') : ''}
+
+    function extractTitle(raw){
+      const m = raw.match(/^#\s+(.+)$/m)
+      return m ? m[1].trim() : ''
+    }
+
+    function showPost(id){
+      const p = posts.find(x=>x.id===id)
+      if(!p) return
+      postMeta.innerHTML = `<h2 style="margin:0">${escapeHtml(p.title||p.name)}</h2><div class="small">${p.name} ${p.date? '• '+p.date:''}</div>`
+      postContent.innerHTML = p.html
+      document.querySelectorAll('pre code').forEach((el)=>hljs.highlightElement(el))
+      postContent.scrollTop = 0
+    }
+
+    function addPost(name, raw, sourceUrl){
+      const id = slug(name) + '-' + Math.random().toString(36).slice(2,8)
+      const title = extractTitle(raw) || name
+      const html = md.render(raw)
+      const date = ''
+      posts.push({id,name,raw,html,title,date,sourceUrl})
+      updateFuse()
+    }
+
+    function getSnippet(post, query){
+      if(!query) return post.raw.slice(0,120).replace(/\n/g,' ') + (post.raw.length>120? '…':'')
+      const idx = post.raw.toLowerCase().indexOf(query.toLowerCase())
+      if(idx===-1) return post.raw.slice(0,120).replace(/\n/g,' ') + (post.raw.length>120? '…':'')
+      const start = Math.max(0, idx-40)
+      const end = Math.min(post.raw.length, idx + query.length + 40)
+      const snippet = post.raw.slice(start,end).replace(/\n/g,' ')
+      const re = new RegExp(query, 'ig')
+      return snippet.replace(re, (m)=>`<span class="highlight">${escapeHtml(m)}</span>`)
+    }
+
+    function updateFuse(){
+      fuse = new Fuse(posts, {
+        keys: ['title','raw'],
+        threshold: 0.3,
+        includeScore: true
+      })
+    }
+
+    function doSearch(q){
+      lastQuery = q
+      if(!q){ renderList(posts); resultCount.textContent = ''; return }
+      const results = fuse.search(q).map(r=>r.item)
+      renderList(results)
+      resultCount.textContent = results.length + ' matches'
+    }
+
+    dropZone.addEventListener('dragover', e=>{e.preventDefault(); dropZone.style.borderColor='#60a5fa'})
+    dropZone.addEventListener('dragleave', e=>{dropZone.style.borderColor='#e2e8f0'})
+    dropZone.addEventListener('drop', e=>{
+      e.preventDefault(); dropZone.style.borderColor='#e2e8f0'
+      const files = Array.from(e.dataTransfer.files)
+      handleFiles(files)
+    })
+
+    uploadBtn.addEventListener('click', ()=> fileInput.click())
+    fileInput.addEventListener('change', ()=> handleFiles(Array.from(fileInput.files)))
+
+    function handleFiles(files){
+      const mdFiles = files.filter(f=>/\.md$|\.markdown$/i.test(f.name) || f.type.includes('markdown'))
+      if(!mdFiles.length) return alert('No markdown files detected')
+      Promise.all(mdFiles.map(f=>f.text().then(t=>({name:f.name, raw:t}))))
+        .then(arr=>{
+          arr.forEach(a=>addPost(a.name,a.raw))
+          renderList(posts)
+          if(posts.length && !lastQuery) showPost(posts[0].id)
+        })
+    }
+
+    async function tryLoadIndex(){
+      try{
+        const r = await fetch('index.json', {cache:'no-store'})
+        if(!r.ok) return
+        const arr = await r.json()
+        if(!Array.isArray(arr)) return
+        for(const url of arr){
+          try{
+            const resp = await fetch(url)
+            const raw = await resp.text()
+            const name = url.split('/').pop()
+            addPost(name, raw, url)
+          }catch(e){console.warn('failed to load',url,e)}
+        }
+        renderList(posts)
+        if(posts.length) showPost(posts[0].id)
+      }catch(e){console.log('no index.json or failed to load')}
+    }
+
+    searchInput.addEventListener('input', e=> doSearch(e.target.value))
+
+    // Generate index.json client-side
+    genIndexBtn.addEventListener('click', ()=>{
+      if(!posts.length) return alert('No posts loaded')
+      const urls = posts.map(p=>p.sourceUrl || p.name)
+      const blob = new Blob([JSON.stringify(urls, null, 2)], {type:'application/json'})
+      const a = document.createElement('a')
+      a.href = URL.createObjectURL(blob)
+      a.download = 'index.json'
+      a.click()
+    })
+
+    tryLoadIndex()
+    window.__blog = {posts,addPost,showPost,doSearch}
+  </script>
+</body>
+</html>
+
