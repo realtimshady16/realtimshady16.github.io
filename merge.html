@@ -215,7 +215,7 @@
                 // Loop through each selected file in the current order
                 for (const file of selectedFiles) {
                     const arrayBuffer = await file.arrayBuffer(); // Read file as ArrayBuffer
-                    const pdf = await PDFDocument.load(arrayBuffer); // Load PDF into pdf-lib
+                    const pdf = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true }); // Load PDF into pdf-lib
                     // Copy all pages from the current PDF to the merged PDF
                     const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
                     copiedPages.forEach((page) => mergedPdf.addPage(page)); // Add copied pages
