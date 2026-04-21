@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remember These</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --bg: #f8fafc;
+            --text: #1e293b;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+
+        header {
+            max-width: 800px;
+            margin: 0 auto 40px auto;
+            text-align: center;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        select {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            background: white;
+        }
+
+        #memories-container {
+            max-width: 800px;
+            margin: 0 auto;
+            display: grid;
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid var(--primary);
+        }
+
+        .quote {
+            font-size: 1.25rem;
+            font-weight: 600;
+            font-style: italic;
+            margin-bottom: 12px;
+            color: #0f172a;
+        }
+
+        .lesson {
+            color: #475569;
+            margin-bottom: 15px;
+            padding-left: 10px;
+            border-left: 2px solid #e2e8f0;
+        }
+
+        .footer-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-top: 15px;
+        }
+
+        .tag {
+            background: #dbeafe;
+            color: var(--primary);
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        .loading { text-align: center; font-style: italic; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Remember</h1>
+        <p>A personal collection of quotes, memories, and lessons.</p>
+    </header>
+
+    <div class="controls">
+        <select id="tagFilter">
+            <option value="all">All Tags</option>
+        </select>
+        <button onclick="fetchMemories()" style="padding: 8px 16px; border-radius: 8px; cursor: pointer;">Refresh</button>
+    </div>
+
+    <div id="memories-container">
+        <p class="loading">Fetching memories from the server...</p>
+    </div>
+
+    <script>
+        // REPLACE THIS with your actual Cloudflare URL
+        const API_URL = "https://proof.evertses.co.za/items";
+
+        let allMemories = [];
+
+        async function fetchMemories() {
+            const container = document.getElementById('memories-container');
+            
+            try {
+                const response = await fetch(API_URL);
+                if (!response.ok) throw new Error('Server not reachable');
+                
+                allMemories = await response.json();
+                populateTags();
+                displayMemories(allMemories);
+            } catch (error) {
+                container.innerHTML = `<p style="color: red; text-align: center;">Error: Could not connect to the home server. Make sure your tunnel is active!</p>`;
+                console.error(error);
+            }
+        }
+
+        function populateTags() {
+            const select = document.getElementById('tagFilter');
+            const tags = [...new Set(allMemories.map(m => m.tag))];
+            
+            // Keep "All Tags" and add the others
+            select.innerHTML = '<option value="all">All Tags</option>';
+            tags.forEach(tag => {
+                const opt = document.createElement('option');
+                opt.value = tag;
+                opt.textContent = tag;
+                select.appendChild(opt);
+            });
+        }
+
+        function displayMemories(data) {
+            const container = document.getElementById('memories-container');
+            container.innerHTML = '';
+
+            if (data.length === 0) {
+                container.innerHTML = '<p style="text-align: center;">No memories found yet. Add some using your TUI!</p>';
+                return;
+            }
+
+            data.forEach(memory => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div class="quote">"${memory.content}"</div>
+                    <div class="lesson"><strong>Lesson:</strong> ${memory.lesson}</div>
+                    <div class="footer-meta">
+                        <span class="tag">${memory.tag}</span>
+                        <span>Learnt: ${memory.learnt_date}</span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Filter Logic
+        document.getElementById('tagFilter').addEventListener('change', (e) => {
+            const selected = e.target.value;
+            if (selected === 'all') {
+                displayMemories(allMemories);
+            } else {
+                const filtered = allMemories.filter(m => m.tag === selected);
+                displayMemories(filtered);
+            }
+        });
+
+        // Initial Load
+        fetchMemories();
+    </script>
+</body>
+</html>
