@@ -83,7 +83,42 @@
                 }
             });
         }
-        turndownService = new TurndownService();
+        // Configure Turndown for clean, consistent markdown output.
+        // These settings ensure the README parser on the website
+        // can reliably read whatever contributors submit via this tool.
+        turndownService = new TurndownService({
+            headingStyle: 'atx',        // Always use ## style, never underline style
+            bulletListMarker: '-',      // Always use - for bullets, not * or +
+            codeBlockStyle: 'fenced'    // Use ``` fences, not indentation
+        });
+
+        // Override heading rule to strip any bold/italic formatting that
+        // Quill injects inside heading nodes. Without this, a bold heading
+        // in Quill becomes ## **Heading** in markdown, which breaks parsing.
+        turndownService.addRule('cleanHeadings', {
+            filter: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
+            replacement: function(content, node) {
+                const level = parseInt(node.nodeName.charAt(1));
+                const hashes = '#'.repeat(level);
+                // Strip any markdown bold/italic Quill put inside the heading
+                const cleanContent = content
+                    .replace(/\*\*([^*]+)\*\*/g, '$1')
+                    .replace(/\*([^*]+)\*/g, '$1')
+                    .replace(/__([^_]+)__/g, '$1')
+                    .replace(/_([^_]+)_/g, '$1')
+                    .trim();
+                return '\n\n' + hashes + ' ' + cleanContent + '\n\n';
+            }
+        });
+
+        // Clean up trailing whitespace on each line after conversion
+        const originalTurndown = turndownService.turndown.bind(turndownService);
+        turndownService.turndown = function(html) {
+            return originalTurndown(html)
+                .split('\n')
+                .map(line => line.trimEnd())
+                .join('\n');
+        };
         // --- END INITIALIZATION ---
 
         const ownerInput = document.getElementById('owner');
